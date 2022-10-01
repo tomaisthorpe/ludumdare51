@@ -6,10 +6,16 @@ local Wall = require("wall")
 local Door = require("door")
 
 local House = Class {
-    init = function(self, world, rooms, walls, doors, grid)
+    init = function(self, world, rooms, walls, doors, grid, startingRoom)
         self.world = world
         self.rooms = rooms
         self.grid = grid
+        self.startingRoom = startingRoom
+
+        self.startingPosition = {
+            x = startingRoom.rect[1].x + startingRoom.w / 2,
+            y = startingRoom.rect[1].y + startingRoom.h / 2,
+        }
 
         self:setupWalls(walls)
         self:setupDoors(doors)

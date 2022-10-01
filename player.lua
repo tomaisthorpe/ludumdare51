@@ -2,11 +2,11 @@ local Class = require("hump.class")
 local Bullet = require("bullet")
 
 local Player = Class {
-  init = function(self, game, world)
+  init = function(self, game, world, x, y)
     self.game = game
     self.world = world
 
-    self.object = world:newRectangleCollider(400, 200, 32, 32)
+    self.object = world:newRectangleCollider(x, y, 32, 32)
     self.object:setCollisionClass('Player')
     self.object:setObject(self)
     self.object:setFixedRotation(true)

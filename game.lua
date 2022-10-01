@@ -20,7 +20,7 @@ end
 function Game:enter()
   self.world = wf.newWorld(0, 0, true)
   self.world:addCollisionClass('Solid')
-  self.world:addCollisionClass('Player')
+  self.world:addCollisionClass('Player', { ignores = { 'Solid' } })
   self.world:addCollisionClass('Enemy')
   self.world:addCollisionClass('Bullet', { ignores = { 'Bullet', 'Solid', 'Enemy', 'Player' } })
 
@@ -28,9 +28,9 @@ function Game:enter()
   self.house = houseGen:generate()
   houseGen:draw()
 
-  self.player = Player(self, self.world)
+  self.player = Player(self, self.world, self.house.startingPosition.x, self.house.startingPosition.y)
   self.enemies = {}
-  table.insert(self.enemies, Enemy(self, self.world, 32, 32))
+  -- table.insert(self.enemies, Enemy(self, self.world, 32, 32))
 
   self.entities = {}
 

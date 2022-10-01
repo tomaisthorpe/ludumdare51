@@ -8,13 +8,15 @@ local config = require("config")
 local inspect = require("inspect")
 local House = require("house")
 
-MAX_RECURSION = 2
+MAX_RECURSION = 5
 
 TL = 1
 BL = 2
 BR = 3
 TR = 4
-minRoomSize = 2
+minRoomSize = 6
+
+maxRooms = 5
 
 local HouseGenerator = Class {
     init = function(self, world)
@@ -22,15 +24,15 @@ local HouseGenerator = Class {
     end,
     grid = {
         id = 0,
-        w = 40,
-        h = 30,
+        w = 100,
+        h = 60,
         roomCount = 1,
         data = {},
-        pos = function(self, x, y) return (x * self.w + y) + 1 end,
+        pos = function(self, x, y) return y * self.w + x end,
         get = function(self, x, y) return self.data[self:pos(x, y)] end,
         set = function(self, x, y, value) self.data[self:pos(x, y)] = value end,
         reset = function(self)
-            for i = 1, self.w * self.h do
+            for i = 0, self.w * self.h do
                 self.data[i] = "0"
             end
         end,
@@ -38,28 +40,134 @@ local HouseGenerator = Class {
 }
 
 function HouseGenerator:generate()
-    self.grid:reset()
-    self.roomCount = 1
+    -- love.math.setRandomSeed(30)
+    while true do
+        self.grid:reset()
+        print("grid1", #self.grid.data)
+        self.roomCount = 1
 
-    -- Create the root node
-    local rect = {
-        [TL] = { x = 0, y = 0 },
-        [BL] = { x = 0, y = self.grid.h },
-        [BR] = { x = self.grid.w, y = self.grid.h },
-        [TR] = { x = self.grid.w, y = 0 }
-    }
-    local root = self:node(nil, rect)
-    self:splitNode(root)
+        -- Create the root node
+        local rect = {
+            [TL] = { x = 0, y = 0 },
+            [BL] = { x = 0, y = self.grid.h - 1 },
+            [BR] = { x = self.grid.w - 1, y = self.grid.h - 1 },
+            [TR] = { x = self.grid.w - 1, y = 0 }
+        }
 
-    local rooms = self:getRooms(root)
-    local walls, doors = self:getWallsAndDoors(rooms)
+        local root = self:node(nil, rect)
+        self:splitNode(root)
 
-    local house = House(self.world, rooms, walls, doors, self.grid)
+        local rooms = self:getRooms(root)
+        local boundaries = self:getBoundaries(rooms)
 
-    return house
+        local selectedRooms, startingRoom = self:selectRooms(rooms, boundaries)
+        if selectedRooms ~= nil then
+            self.grid:reset()
+
+            for _, room in ipairs(selectedRooms) do
+                self:drawNode({
+                    id = room.id,
+                    rect = self:unscaleRect(room.rect),
+                    x = room.gx,
+                    y = room.gy,
+                    w = room.gw,
+                    h = room.gh,
+                })
+            end
+
+            local selectedBoundaries = self:getBoundaries(selectedRooms)
+            local walls, doors = self:getWallsAndDoors(selectedBoundaries)
+
+            local house = House(self.world, selectedRooms, walls, doors, self.grid, startingRoom)
+
+            return house
+        end
+
+    end
 end
 
-function HouseGenerator:getWallsAndDoors(rooms)
+function HouseGenerator:isValidRoom(room)
+    local x = room.rect[TL].x
+    local y = room.rect[TL].y
+
+    return true or x > 0 and y > 0
+end
+
+function HouseGenerator:chooseStartingRoom(rooms)
+    while true do
+        local startingRoom = rooms[love.math.random(1, #rooms - 1)]
+
+        if self:isValidRoom(startingRoom) then
+            return startingRoom
+        end
+    end
+end
+
+function HouseGenerator:isValidRoomID(rooms, id)
+    for _, room in ipairs(rooms) do
+        if room.id == id then
+            return self:isValidRoom(room)
+        end
+    end
+
+    return false
+end
+
+function HouseGenerator:selectRooms(rooms, boundaries)
+    -- Uses the max room count to select rooms that are going to be used
+
+    local startingRoom = self:chooseStartingRoom(rooms)
+    startingRoom.startingRoom = true
+
+    local roomCount = 1
+    local selectedRoomIDs = { [startingRoom.id] = true }
+    local noLoopy = 0
+
+    while roomCount < maxRooms and noLoopy < 100 do
+        -- Find all boundaries that include at least one of the selected room IDs
+        local selectedBoundaries = {}
+
+        for _, boundary in ipairs(boundaries) do
+            for id, _ in pairs(selectedRoomIDs) do
+                if boundary.between[1] == id or boundary.between[2] == id then
+                    table.insert(selectedBoundaries, boundary)
+                    break
+                end
+            end
+        end
+
+        local chosenBoundary = selectedBoundaries[love.math.random(1, #selectedBoundaries)]
+        if not selectedRoomIDs[chosenBoundary.between[1]] and self:isValidRoomID(rooms, chosenBoundary.between[1]) then
+            selectedRoomIDs[chosenBoundary.between[1]] = true
+            roomCount = roomCount + 1
+        elseif not selectedRoomIDs[chosenBoundary.between[2]] and self:isValidRoomID(rooms, chosenBoundary.between[2]) then
+            selectedRoomIDs[chosenBoundary.between[2]] = true
+            roomCount = roomCount + 1
+        end
+
+        noLoopy = noLoopy + 1
+    end
+
+    if noLoopy == 100 then
+        return nil, nil
+    end
+
+    local selectedRooms = {}
+
+    for id, _ in pairs(selectedRoomIDs) do
+        for _, room in ipairs(rooms) do
+            if room.id == id then
+                table.insert(selectedRooms, room)
+                break
+            end
+        end
+    end
+
+    return selectedRooms, startingRoom
+
+end
+
+function HouseGenerator:getBoundaries(rooms)
     -- Loop each room
     -- Check right edge of room to see what happens on the boundary.
     ---- If over grid width, then nothing there
@@ -72,7 +180,7 @@ function HouseGenerator:getWallsAndDoors(rooms)
     local gs = config.gridScale
 
     for _, room in ipairs(rooms) do
-        print("Right edge for ", room.id)
+        print("Right edge for ", room.id, room.gx + room.gw, room.gx, room.gw)
         -- Right edge
         -- Get the x where the wall should start
         local x = room.gx + room.gw
@@ -81,26 +189,37 @@ function HouseGenerator:getWallsAndDoors(rooms)
         -- We're in bounds, so should check this right edge
         if x < self.grid.w and y < self.grid.h then
             local count = 1
-            local current = self.grid:get(x, y)
+            local current = self.grid:get(x + 1, y)
+            if x + 1 >= self.grid.w then
+                current = "0"
+            end
+
             local startY = y
 
-            for by = 1, room.gh, 1 do
-                local nextRoom = self.grid:get(x, y + by)
+            for by = 0, room.gh - 1, 1 do
+                local nextRoom = self.grid:get(x + 1, y + by)
+                if x + 1 >= self.grid.w then
+                    nextRoom = "0"
+                end
 
                 -- If this room is different to what we saw before, then we have a new boundary
-                if nextRoom ~= current or by == room.gh then
+                if nextRoom ~= current or by == room.gh - 1 then
                     -- Push the boundary
+                    -- if current ~= room.id then
                     local boundary = {
                         between = { room.id, current },
                         x = x,
                         y = startY,
                         length = count,
                         vertical = true,
+                        outside = current == "0",
                     }
 
                     table.insert(boundaries, boundary)
+                    -- end
+
                     current = nextRoom
-                    startY = y + by
+                    startY = startY + count
                     count = 1
                 else
                     count = count + 1
@@ -108,7 +227,7 @@ function HouseGenerator:getWallsAndDoors(rooms)
             end
         end
 
-        -- Bottom edge
+        -- -- Bottom edge
         print("Bottom edge for ", room.id)
         -- Get the y where the wall should start
         local x = room.gx
@@ -117,14 +236,22 @@ function HouseGenerator:getWallsAndDoors(rooms)
         -- We're in bounds, so should check this bottom edge
         if x < self.grid.w and y < self.grid.h then
             local count = 1
-            local current = self.grid:get(x, y)
+            local current = self.grid:get(x, y + 1)
+            if y + 1 >= self.grid.h then
+                current = "0"
+            end
+
             local startX = x
 
-            for bx = 1, room.gw, 1 do
-                local nextRoom = self.grid:get(x + bx, y)
+            for bx = 0, room.gw - 1, 1 do
+                local nextRoom = self.grid:get(x + bx, y + 1)
+                if y + 1 >= self.grid.h then
+                    nextRoom = "0"
+                end
 
                 -- If this room is different to what we saw before, then we have a new boundary
-                if nextRoom ~= current or bx == room.gw then
+                if nextRoom ~= current or bx == room.gw - 1 then
+                    -- if current ~= room.id then
                     -- Push the boundary
                     local boundary = {
                         between = { room.id, current },
@@ -132,12 +259,105 @@ function HouseGenerator:getWallsAndDoors(rooms)
                         y = y,
                         length = count,
                         vertical = false,
+                        outside = current == "0",
                     }
 
                     table.insert(boundaries, boundary)
+                    -- end
+
                     current = nextRoom
+                    startX = startX + count
                     count = 1
-                    startX = x + bx
+                else
+                    count = count + 1
+                end
+            end
+        end
+
+        -- Top edge if top is 0 only
+        local x = room.gx
+        local y = room.gy
+
+        -- We're in bounds, so should check this bottom edge
+        if x < self.grid.w and y < self.grid.h then
+            local count = 1
+            local current = self.grid:get(x, y - 1)
+            if y - 1 < 0 then
+                current = "0"
+            end
+
+            local startX = x
+
+            for bx = 1, room.gw, 1 do
+                local nextRoom = self.grid:get(x + bx, y - 1)
+                if y - 1 < 0 then
+                    nextRoom = "0"
+                end
+
+                -- If this room is different to what we saw before, then we have a new boundary
+                if nextRoom ~= current or bx == room.gw then
+                    if current == "0" then
+                        -- Push the boundary
+                        local boundary = {
+                            between = { room.id, current },
+                            x = startX,
+                            y = y,
+                            length = count,
+                            vertical = false,
+                            outside = current == "0",
+                        }
+
+                        table.insert(boundaries, boundary)
+                    end
+
+                    current = nextRoom
+                    startX = startX + count
+                    count = 1
+                else
+                    count = count + 1
+                end
+            end
+        end
+
+        print("Left edge for ", room.id, room.gx + room.gw, room.gx, room.gw)
+        -- Left edge if left is 0 only
+        local x = room.gx
+        local y = room.gy
+
+        -- We're in bounds, so should check this right edge
+        if x < self.grid.w and y < self.grid.h then
+            local count = 1
+            local current = self.grid:get(x - 1, y)
+            if x - 1 < 0 then
+                current = "0"
+            end
+
+            local startY = y
+
+            for by = 1, room.gh, 1 do
+                local nextRoom = self.grid:get(x - 1, y + by)
+                if x - 1 < 0 then
+                    nextRoom = "0"
+                end
+
+                -- If this room is different to what we saw before, then we have a new boundary
+                if nextRoom ~= current or by == room.gh then
+                    if current == "0" then
+                        local boundary = {
+                            between = { room.id, current },
+                            x = x,
+                            y = startY,
+                            length = count,
+                            vertical = true,
+                            outside = current == "0",
+                        }
+
+                        table.insert(boundaries, boundary)
+                    end
+
+                    current = nextRoom
+                    startY = startY + count
+                    count = 1
                 else
                     count = count + 1
                 end
@@ -145,6 +365,10 @@ function HouseGenerator:getWallsAndDoors(rooms)
         end
     end
 
+    return boundaries
+end
+
+function HouseGenerator:getWallsAndDoors(boundaries)
     local walls = {}
     local doors = {}
 
@@ -154,8 +378,8 @@ function HouseGenerator:getWallsAndDoors(rooms)
         -- This is random and doesn't guarantee that all rooms are reachable
         local hasDoor = love.math.random(0, 4) >= 0 and boundary.length > config.doorWidth + 2
 
-        if hasDoor then
-            local doorPosition = math.floor(boundary.length / 2)
+        if hasDoor and boundary.outside == false then
+            local doorPosition = math.floor((boundary.length - config.doorWidth) / 2)
 
             if boundary.vertical then
                 table.insert(walls, self:wall(boundary.x, boundary.y, doorPosition, true))
@@ -192,12 +416,6 @@ function HouseGenerator:getWallsAndDoors(rooms)
         end
     end
 
-    -- Add outside walls
-    table.insert(walls, self:wall(0, 0, self.grid.w, false))
-    table.insert(walls, self:wall(0, self.grid.h, self.grid.w, false))
-    table.insert(walls, self:wall(0, 0, self.grid.h, true))
-    table.insert(walls, self:wall(self.grid.w, 0, self.grid.h, true))
-
     return walls, doors
 end
 
@@ -227,6 +445,16 @@ function HouseGenerator:door(x, y, vertical)
         x = x * gs,
         y = y * gs,
         vertical = vertical,
+    }
+end
+
+function HouseGenerator:unscaleRect(rect)
+    local gs = config.gridScale
+    return {
+        [TL] = { x = math.floor(rect[TL].x / gs), y = math.floor(rect[TL].y / gs) },
+        [TR] = { x = math.floor(rect[TR].x / gs), y = math.floor(rect[TR].y / gs) },
+        [BR] = { x = math.floor(rect[BR].x / gs), y = math.floor(rect[BR].y / gs) },
+        [BL] = { x = math.floor(rect[BL].x / gs), y = math.floor(rect[BL].y / gs) },
     }
 end
 
@@ -362,8 +590,8 @@ end
 
 function HouseGenerator:drawNode(node)
     local rect = node.rect
-    for y = rect[TL].y, rect[BL].y do
-        for x = rect[TL].x, rect[TR].x do
+    for y = rect[TL].y, rect[BL].y - 1 do
+        for x = rect[TL].x, rect[TR].x - 1 do
             -- if x==rect[TL].x or x==rect[TR].x or y==rect[TL].y or y==rect[BR].y then
             -- self.grid:set(x, y, "#")
             -- else
@@ -377,9 +605,9 @@ function HouseGenerator:draw()
     print("drawing")
     local line = ""
     local x, y
-    for y = 0, self.grid.h do
-        for x = 0, self.grid.w do
-            line = "" .. line .. (self.grid.data[self.grid:pos(x, y)] or 0)
+    for y = 0, self.grid.h - 1 do
+        for x = 0, self.grid.w - 1 do
+            line = "" .. line .. (self.grid.data[self.grid:pos(x, y)] or "wut")
         end
         print(line)
         line = ""
