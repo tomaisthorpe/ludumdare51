@@ -8,7 +8,7 @@ local config = require("config")
 local inspect = require("inspect")
 local House = require("house")
 
-MAX_RECURSION = 1
+MAX_RECURSION = 2
 
 TL = 1
 BL = 2
@@ -54,7 +54,7 @@ function HouseGenerator:generate()
     local rooms = self:getRooms(root)
     local walls, doors = self:getWallsAndDoors(rooms)
 
-    local house = House(self.world, rooms, walls, doors)
+    local house = House(self.world, rooms, walls, doors, self.grid)
 
     return house
 end
@@ -78,12 +78,8 @@ function HouseGenerator:getWallsAndDoors(rooms)
         local x = room.gx + room.gw
         local y = room.gy
 
-        print("xy", x, y)
-
         -- We're in bounds, so should check this right edge
         if x < self.grid.w and y < self.grid.h then
-            print(self.grid:get(x, y))
-
             local count = 1
             local current = self.grid:get(x, y)
             local startY = y
@@ -118,12 +114,8 @@ function HouseGenerator:getWallsAndDoors(rooms)
         local x = room.gx
         local y = room.gy + room.gh
 
-        print(x, y, "wut")
-
         -- We're in bounds, so should check this bottom edge
         if x < self.grid.w and y < self.grid.h then
-            print(self.grid:get(x, y))
-
             local count = 1
             local current = self.grid:get(x, y)
             local startX = x
@@ -153,9 +145,7 @@ function HouseGenerator:getWallsAndDoors(rooms)
         end
     end
 
-    print(inspect(boundaries))
     local walls = {}
-    local wallWidth = 2
     local doors = {}
 
     -- Convert the boundaries to walls and randomly add some doors
@@ -309,8 +299,6 @@ function HouseGenerator:splitNode(node)
     -- Split the two new nodes
     self:splitNode(node.left)
     self:splitNode(node.right)
-
-    print(node.level, inspect(node))
 end
 
 function HouseGenerator:splitRectangles(node, split)

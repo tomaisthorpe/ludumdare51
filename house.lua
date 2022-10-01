@@ -1,16 +1,67 @@
 local Class = require("hump.class")
+require("a-star")
+local inspect = require("inspect")
 
 local House = Class {
-    init = function(self, world, rooms, walls, doors)
+    init = function(self, world, rooms, walls, doors, grid)
         self.world = world
         self.rooms = rooms
         self.walls = walls
         self.doors = doors
+        self.grid = grid
 
         self:setupWalls()
         self:setupDoors()
+        self:generateNodes()
     end,
+    nodes = {},
 }
+
+function House:generateNodes()
+    for x = 1, self.grid.w do
+        for y = 1, self.grid.h do
+            table.insert(self.nodes, {
+                x = x,
+                y = y,
+                value = self.grid:get(x, y),
+            })
+        end
+    end
+end
+
+function House:getNode(x, y)
+    for _, node in ipairs(self.nodes) do
+        if node.x == x and node.y == y then
+            return node
+        end
+    end
+
+
+    return nil
+end
+
+function House:path(start, goal)
+    local startNode = self:getNode(start.x, start.y)
+    local goalNode = self:getNode(goal.x, goal.y)
+
+    local valid_node_func = function(node, neighbour)
+        if astar.dist_between(node, neighbour) > 1.5 then
+            return false
+        end
+
+        if node.value ~= neighbour.value then
+            if node.value == "d" or neighbour.value == "d" then
+                return true
+            end
+
+            return false
+        end
+
+        return true
+    end
+
+    return astar.path(startNode, goalNode, self.nodes, false, valid_node_func)
+end
 
 function House:setupWalls()
 

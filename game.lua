@@ -3,9 +3,10 @@ local HouseGenerator = require("house-generator")
 local wf = require("windfield")
 local Player = require("player")
 local Camera = require("Camera")
+local inspect = require("inspect")
 
 local Game = {
-  translate = {0, 0},
+  translate = { 0, 0 },
   scaling = 1,
 }
 
@@ -28,6 +29,9 @@ function Game:enter()
 
   self.camera = Camera(0, 0, 800, 600)
   self.camera:setFollowStyle('TOPDOWN_TIGHT')
+
+  -- self.path = self.house:path(
+  --   { x = 2, y = 2 }, { x = 30, y = 15 })
 end
 
 function Game:update(dt)
@@ -60,8 +64,10 @@ function Game:draw()
   love.graphics.setColor(config.borderColor[1], config.borderColor[2], config.borderColor[3])
   love.graphics.rectangle("fill", 0, 0, Game.translate[1], love.graphics.getHeight())
   love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), Game.translate[2])
-  love.graphics.rectangle("fill", love.graphics.getWidth() - Game.translate[1], 0, Game.translate[1], love.graphics.getHeight())
-  love.graphics.rectangle("fill", 0, love.graphics.getHeight() - Game.translate[2], love.graphics.getWidth(), Game.translate[2])
+  love.graphics.rectangle("fill", love.graphics.getWidth() - Game.translate[1], 0, Game.translate[1],
+    love.graphics.getHeight())
+  love.graphics.rectangle("fill", 0, love.graphics.getHeight() - Game.translate[2], love.graphics.getWidth(),
+    Game.translate[2])
 end
 
 function Game:drawGame()
@@ -71,6 +77,21 @@ function Game:drawGame()
   if config.physicsDebug then
     self.world:draw(1)
   end
+
+  -- self:drawPath(self.path)
+end
+
+function Game:drawPath(path)
+  local gs = config.gridScale
+
+  love.graphics.setColor(1, 1, 1)
+  local points = {}
+  for _, p in ipairs(path) do
+    table.insert(points, p.x * gs)
+    table.insert(points, p.y * gs)
+  end
+
+  love.graphics.line(points)
 end
 
 function Game:drawUI()
@@ -99,14 +120,14 @@ function Game:calculateScaling()
   local minEdge = love.graphics.getHeight()
   if minEdge < love.graphics.getWidth() then
     Game.scaling = minEdge / 600
-     Game.translate = {(love.graphics.getWidth() - (800 * Game.scaling)) / 2, 0}
+    Game.translate = { (love.graphics.getWidth() - (800 * Game.scaling)) / 2, 0 }
   else
     Game.scaling = love.graphics.getWidth() / 800
   end
 end
 
 function Game:keypressed(key)
-  if key == "escape" then 
+  if key == "escape" then
     love.event.quit()
   end
 end
