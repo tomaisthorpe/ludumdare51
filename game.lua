@@ -1,4 +1,5 @@
 local config = require("config")
+local HouseGenerator = require("house-generator")
 
 local Game = {
   translate = {0, 0},
@@ -8,6 +9,9 @@ local Game = {
 function Game:init()
   -- Window setup
   Game:calculateScaling()
+
+  local house = HouseGenerator()
+  house:draw()
 end
 
 function Game:enter()
