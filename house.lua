@@ -1,12 +1,14 @@
 local Class = require("hump.class")
 
 local House = Class {
-  init = function(self, world, rooms, walls)
+  init = function(self, world, rooms, walls, doors)
     self.world = world
     self.rooms = rooms
     self.walls = walls
+    self.doors = doors
 
     self:setupWalls()
+    self:setupDoors()
   end,
 }
 
@@ -17,6 +19,27 @@ function House:setupWalls()
         obj:setCollisionClass('Solid')
         obj:setType('static')
     end
+end
+
+function House:setupDoors()
+    for _, door in ipairs(self.doors) do
+    local hinge = self.world:newRectangleCollider(door.x - 2, door.y - 2, 3, 3)
+        hinge:setType('static')
+
+        local w = 47
+        local h = 2
+
+        if door.vertical then
+            w = 2
+            h = 47
+        end
+
+        local obj = self.world:newRectangleCollider(door.x, door.y, w, h)
+        obj:setCollisionClass('Solid')
+
+        self.world:addJoint('RevoluteJoint', hinge, obj, door.x, door.y, false)
+    end
+
 end
 
 function House:draw()

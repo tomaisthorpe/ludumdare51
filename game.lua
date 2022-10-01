@@ -13,7 +13,6 @@ function Game:init()
   -- Window setup
   Game:calculateScaling()
 
-  -- houseGen:draw()
 end
 
 function Game:enter()
@@ -23,6 +22,7 @@ function Game:enter()
 
   local houseGen = HouseGenerator(self.world)
   self.house = houseGen:generate()
+  -- houseGen:draw()
 
   self.player = Player(self, self.world)
 
