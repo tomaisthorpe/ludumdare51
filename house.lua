@@ -80,7 +80,6 @@ function House:path(start, goal)
 end
 
 function House:setupWalls()
-
     for _, wall in ipairs(self.walls) do
         local obj = self.world:newRectangleCollider(wall.x, wall.y, wall.w, wall.h)
         obj:setCollisionClass('Solid')

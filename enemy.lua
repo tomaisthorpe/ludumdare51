@@ -1,10 +1,12 @@
 local Class = require("hump.class")
-
+local inspect = require("inspect")
+local config = require("config")
 require("a-star")
 
 local Enemy = Class {
   init = function(self, game, world, x, y)
     self.game = game
+    self.world = world
 
     self.object = world:newRectangleCollider(x, y, 32, 32)
     self.object:setCollisionClass('Enemy')
@@ -17,6 +19,7 @@ local Enemy = Class {
   speed = 1000,
   path = nil,
   dead = false,
+  pathDOB = 0,
 }
 
 function Enemy:getX()
@@ -56,17 +59,41 @@ function Enemy:update(dt)
   local vx = self.speed * self.object:getMass()
   local vy = self.speed * self.object:getMass()
 
-  if self.path == nil and
-      astar.dist_between({ x = self:getX(), y = self:getY() },
-        { x = self.game.player:getX(), y = self.game.player:getY() }) < 300 then
-    self.path = self.game.house:path(
-      { x = self:getX(), y = self:getY() },
-      { x = self.game.player:getX(), y = self.game.player:getY() }
-    )
+  if self.path == nil then
+    -- raycast between enemy and player to check if enemy can see the player
+    local colliders = self.world:queryLine(self:getX(), self:getY(), self.game.player:getX(), self.game.player:getY(),
+      { 'Solid' })
+
+    if #colliders then
+      local dist = self:distToPlayer()
+
+      if dist > config.enemyChaseDistance.min and dist < config.enemyChaseDistance.max then
+        self.path = self.game.house:path(
+          { x = self:getX(), y = self:getY() },
+          { x = self.game.player:getX(), y = self.game.player:getY() }
+        )
+
+        self.pathDOB = love.timer.getTime()
+      end
+    end
   end
 
   if self.path then
-    if astar.dist_between(self.path[1], { x = self:getX(), y = self:getY() }) < 16 then
+    if self:distToPlayer() < config.enemyChaseDistance.min then
+      self.path = nil
+      return
+    end
+
+    if self.pathDOB >= love.timer.getTime() - config.enemyPathInterval then
+      self.path = self.game.house:path(
+        { x = self:getX(), y = self:getY() },
+        { x = self.game.player:getX(), y = self.game.player:getY() }
+      )
+
+      self.pathDOB = love.timer.getTime()
+    end
+
+    if astar.dist_between(self.path[1], { x = self:getX(), y = self:getY() }) < 24 then
       table.remove(self.path, 1)
     end
 
@@ -77,6 +104,13 @@ function Enemy:update(dt)
       self:moveTo(dt, target.x, target.y, 1)
     end
   end
+end
+
+function Enemy:distToPlayer()
+  return astar.dist_between(
+    { x = self:getX(), y = self:getY() },
+    { x = self.game.player:getX(), y = self.game.player:getY() }
+  )
 end
 
 function Enemy:draw()

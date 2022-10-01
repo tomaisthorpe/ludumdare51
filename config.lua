@@ -10,6 +10,12 @@ local config = {
   wallWidth = 2,
   doorWidth = 3,
 
+
+  enemyChaseDistance = {
+    max = 250,
+    min = 150,
+  },
+  enemyPathInterval = 0.5,
 }
 
 return config
