@@ -4,6 +4,7 @@ local wf = require("windfield")
 local Player = require("player")
 local Camera = require("Camera")
 local inspect = require("inspect")
+local Enemy = require("enemy")
 
 local Game = {
   translate = { 0, 0 },
@@ -20,12 +21,15 @@ function Game:enter()
   self.world = wf.newWorld(0, 0, true)
   self.world:addCollisionClass('Solid')
   self.world:addCollisionClass('Player')
+  self.world:addCollisionClass('Enemy')
 
   local houseGen = HouseGenerator(self.world)
   self.house = houseGen:generate()
   houseGen:draw()
 
   self.player = Player(self, self.world)
+  self.enemies = {}
+  table.insert(self.enemies, Enemy(self, self.world, 32, 32))
 
   self.camera = Camera(0, 0, 800, 600)
   self.camera:setFollowStyle('TOPDOWN_TIGHT')
@@ -38,6 +42,10 @@ function Game:update(dt)
   self.world:update(dt)
 
   self.player:update(dt)
+
+  for _, enemy in ipairs(self.enemies) do
+    enemy:update(dt)
+  end
 
   self.camera:update(dt)
   self.camera:follow(self.player:getX(), self.player:getY())
@@ -72,6 +80,11 @@ end
 
 function Game:drawGame()
   self.house:draw()
+
+  for _, enemy in ipairs(self.enemies) do
+    enemy:draw()
+  end
+
   self.player:draw()
 
   if config.physicsDebug then
@@ -82,13 +95,15 @@ function Game:drawGame()
 end
 
 function Game:drawPath(path)
-  local gs = config.gridScale
+  if #path == 1 then
+    return
+  end
 
   love.graphics.setColor(1, 1, 1)
   local points = {}
   for _, p in ipairs(path) do
-    table.insert(points, p.x * gs)
-    table.insert(points, p.y * gs)
+    table.insert(points, p.x)
+    table.insert(points, p.y)
   end
 
   love.graphics.line(points)

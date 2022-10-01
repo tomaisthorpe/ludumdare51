@@ -1,6 +1,7 @@
 local Class = require("hump.class")
 require("a-star")
 local inspect = require("inspect")
+local config = require("config")
 
 local House = Class {
     init = function(self, world, rooms, walls, doors, grid)
@@ -41,8 +42,9 @@ function House:getNode(x, y)
 end
 
 function House:path(start, goal)
-    local startNode = self:getNode(start.x, start.y)
-    local goalNode = self:getNode(goal.x, goal.y)
+    local gs = config.gridScale
+    local startNode = self:getNode(math.floor(start.x / gs), math.floor(start.y / gs))
+    local goalNode = self:getNode(math.floor(goal.x / gs), math.floor(goal.y / gs))
 
     local valid_node_func = function(node, neighbour)
         if astar.dist_between(node, neighbour) > 1.5 then
@@ -60,7 +62,21 @@ function House:path(start, goal)
         return true
     end
 
-    return astar.path(startNode, goalNode, self.nodes, false, valid_node_func)
+    local gridPath = astar.path(startNode, goalNode, self.nodes, false, valid_node_func)
+    if gridPath == nil then
+        return nil
+    end
+
+    -- Scale the path to world x,y
+    local path = {}
+    for _, point in ipairs(gridPath) do
+        table.insert(path, {
+            x = point.x * gs,
+            y = point.y * gs,
+        })
+    end
+
+    return path
 end
 
 function House:setupWalls()
