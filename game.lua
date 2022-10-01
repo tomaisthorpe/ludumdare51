@@ -2,6 +2,7 @@ local config = require("config")
 local HouseGenerator = require("house-generator")
 local wf = require("windfield")
 local Player = require("player")
+local Camera = require("Camera")
 
 local Game = {
   translate = {0, 0},
@@ -23,12 +24,18 @@ function Game:enter()
   self.world:addCollisionClass('Player')
 
   self.player = Player(self, self.world)
+
+  self.camera = Camera(0, 0, 800, 600)
+  self.camera:setFollowStyle('TOPDOWN_TIGHT')
 end
 
 function Game:update(dt)
   self.world:update(dt)
 
   self.player:update(dt)
+
+  self.camera:update(dt)
+  self.camera:follow(self.player:getX(), self.player:getY())
 end
 
 function Game:draw()
@@ -41,7 +48,9 @@ function Game:draw()
   love.graphics.setColor(0, 0, 0)
   love.graphics.rectangle("fill", 0, 0, 800, 600)
 
+  self.camera:attach()
   self:drawGame()
+  self.camera:detach()
 
   self:drawUI()
   love.graphics.pop()
