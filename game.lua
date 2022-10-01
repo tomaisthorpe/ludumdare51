@@ -22,6 +22,7 @@ function Game:enter()
   self.world:addCollisionClass('Solid')
   self.world:addCollisionClass('Player')
   self.world:addCollisionClass('Enemy')
+  self.world:addCollisionClass('Bullet', { ignores = { 'Bullet', 'Solid', 'Enemy', 'Player' } })
 
   local houseGen = HouseGenerator(self.world)
   self.house = houseGen:generate()
@@ -30,6 +31,8 @@ function Game:enter()
   self.player = Player(self, self.world)
   self.enemies = {}
   table.insert(self.enemies, Enemy(self, self.world, 32, 32))
+
+  self.entities = {}
 
   self.camera = Camera(0, 0, 800, 600)
   self.camera:setFollowStyle('TOPDOWN_TIGHT')
@@ -43,8 +46,20 @@ function Game:update(dt)
 
   self.player:update(dt)
 
-  for _, enemy in ipairs(self.enemies) do
-    enemy:update(dt)
+  for i, e in ipairs(self.enemies) do
+    if e.dead then
+      table.remove(self.enemies, i)
+    else
+      e:update(dt)
+    end
+  end
+
+  for i, e in ipairs(self.entities) do
+    if e.dead then
+      table.remove(self.entities, i)
+    else
+      e:update(dt)
+    end
   end
 
   self.camera:update(dt)
@@ -82,10 +97,18 @@ function Game:drawGame()
   self.house:draw()
 
   for _, enemy in ipairs(self.enemies) do
-    enemy:draw()
+    if not enemy.dead then
+      enemy:draw()
+    end
   end
 
   self.player:draw()
+
+  for _, entity in ipairs(self.entities) do
+    if not entity.dead then
+      entity:draw()
+    end
+  end
 
   if config.physicsDebug then
     self.world:draw(1)
@@ -113,6 +136,10 @@ function Game:drawUI()
   love.graphics.push()
 
   love.graphics.pop()
+end
+
+function Game:addEntity(entity)
+  table.insert(self.entities, entity)
 end
 
 function Game:getMousePosition()

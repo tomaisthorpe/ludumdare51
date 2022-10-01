@@ -11,9 +11,12 @@ local Enemy = Class {
     self.object:setObject(self)
     self.object:setFixedRotation(true)
     self.object:setLinearDamping(5)
+
+    self.health = 100
   end,
   speed = 1000,
   path = nil,
+  dead = false,
 }
 
 function Enemy:getX()
@@ -22,6 +25,22 @@ end
 
 function Enemy:getY()
   return self.object:getY()
+end
+
+function Enemy:destroy()
+  if self.dead == false and self.object then
+    self.object:destroy()
+    self.dead = true
+  end
+end
+
+function Enemy:damage(dmg)
+  self.health = self.health - 0.3 * dmg
+
+  if self.health <= 0 then
+    self:destroy()
+    self.health = 0
+  end
 end
 
 function Enemy:moveTo(dt, x, y, modifier)
@@ -44,8 +63,6 @@ function Enemy:update(dt)
       { x = self:getX(), y = self:getY() },
       { x = self.game.player:getX(), y = self.game.player:getY() }
     )
-
-    print(self.path)
   end
 
   if self.path then
