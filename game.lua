@@ -22,7 +22,7 @@ function Game:enter()
 
   local houseGen = HouseGenerator(self.world)
   self.house = houseGen:generate()
-  -- houseGen:draw()
+  houseGen:draw()
 
   self.player = Player(self, self.world)
 

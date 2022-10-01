@@ -1,15 +1,15 @@
 local Class = require("hump.class")
 
 local House = Class {
-  init = function(self, world, rooms, walls, doors)
-    self.world = world
-    self.rooms = rooms
-    self.walls = walls
-    self.doors = doors
+    init = function(self, world, rooms, walls, doors)
+        self.world = world
+        self.rooms = rooms
+        self.walls = walls
+        self.doors = doors
 
-    self:setupWalls()
-    self:setupDoors()
-  end,
+        self:setupWalls()
+        self:setupDoors()
+    end,
 }
 
 function House:setupWalls()
@@ -23,7 +23,7 @@ end
 
 function House:setupDoors()
     for _, door in ipairs(self.doors) do
-    local hinge = self.world:newRectangleCollider(door.x - 2, door.y - 2, 3, 3)
+        local hinge = self.world:newCircleCollider(door.x, door.y, 2)
         hinge:setType('static')
 
         local w = 47
@@ -46,7 +46,7 @@ function House:draw()
     -- Loop through the rooms and just draw them
 
     for _, room in ipairs(self.rooms) do
-        love.graphics.setColor(room.color[1],room.color[2],room.color[3])
+        love.graphics.setColor(room.color[1], room.color[2], room.color[3])
         love.graphics.rectangle("fill", room.rect[1].x, room.rect[1].y, room.w, room.h)
     end
 end
