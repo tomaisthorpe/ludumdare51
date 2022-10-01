@@ -398,7 +398,10 @@ function HouseGenerator:getWallsAndDoors(boundaries)
         local hasDoor = love.math.random(0, 4) >= 1 and boundary.length > config.doorWidth + 2
 
         if hasDoor and boundary.outside == false then
-            local doorPosition = math.floor((boundary.length - config.doorWidth) / 2)
+            -- local doorPosition = math.floor((boundary.length - config.doorWidth) / 2)
+            local minDoorPosition = 2
+            local maxDoorPosition = boundary.length - 2 - config.doorWidth
+            local doorPosition = love.math.random(minDoorPosition, maxDoorPosition)
 
             if boundary.vertical then
                 table.insert(walls, self:wall(boundary.x, boundary.y, doorPosition, true))
