@@ -5,21 +5,23 @@
 
 local Class = require("hump.class")
 local config = require("config")
+local inspect = require("inspect")
+local House = require("house")
 
-MAX_RECURSION = 3
+MAX_RECURSION = 2
 TL = 1
 BL = 2
 BR = 3
 TR = 4
-minRoomSize = 3
+minRoomSize = 50
 
 local HouseGenerator = Class {
   init = function(self)
-    self:generate()
   end,
   grid = {
-    w = 60,
-    h = 20,
+    id = 0,
+    w = 400,
+    h = 300,
     roomCount = 1,
     data = {},
     pos = function (self, x, y) return (x * self.w + y) + 1 end,
@@ -47,6 +49,40 @@ function HouseGenerator:generate()
     local root = self:node(nil, rect)
     self:splitNode(root)
 
+    local house = House()
+    house.rooms = self:getRooms(root)
+
+    print(inspect(house.rooms))
+    return house
+end
+
+function HouseGenerator:getRooms(node) 
+    if node.id ~= 0 then
+       return {{
+            id = node.id,
+            rect = node.rect,
+            w = node.w,
+            h = node.h,
+            color = {love.math.random(), love.math.random(), love.math.random()}
+       }}
+    end
+
+    local rooms = {}
+    if node.left then
+        local leftRooms = self:getRooms(node.left)
+        for _, v in ipairs(leftRooms) do
+            table.insert(rooms, v)
+        end
+    end
+
+    if node.right then
+        local leftRooms = self:getRooms(node.right)
+        for _, v in ipairs(leftRooms) do
+            table.insert(rooms, v)
+        end
+    end
+
+    return rooms
 end
 
 function HouseGenerator:splitNode(node)
@@ -117,6 +153,7 @@ function HouseGenerator:node(parent, rect)
     end
 
     local n = {
+        id = 0,
         left = nil,
         right = nil,
         rect = rect,
@@ -124,7 +161,7 @@ function HouseGenerator:node(parent, rect)
         level = level,
         vertical_split = love.math.random(0, 1) > 0 and true or false,
         w = rect[TR].x-rect[TL].x,
-        h = rect[BL].y-rect[TL].y 
+        h = rect[BL].y-rect[TL].y
     }
 
     self:drawNode(n)

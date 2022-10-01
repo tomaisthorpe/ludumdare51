@@ -10,8 +10,9 @@ function Game:init()
   -- Window setup
   Game:calculateScaling()
 
-  local house = HouseGenerator()
-  house:draw()
+  local houseGen = HouseGenerator()
+  self.house = houseGen:generate()
+  -- houseGen:draw()
 end
 
 function Game:enter()
@@ -30,6 +31,8 @@ function Game:draw()
   love.graphics.setColor(0, 0, 0)
   love.graphics.rectangle("fill", 0, 0, 800, 600)
 
+  self:drawGame()
+
   self:drawUI()
   love.graphics.pop()
 
@@ -39,6 +42,10 @@ function Game:draw()
   love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), Game.translate[2])
   love.graphics.rectangle("fill", love.graphics.getWidth() - Game.translate[1], 0, Game.translate[1], love.graphics.getHeight())
   love.graphics.rectangle("fill", 0, love.graphics.getHeight() - Game.translate[2], love.graphics.getWidth(), Game.translate[2])
+end
+
+function Game:drawGame()
+  self.house:draw()
 end
 
 function Game:drawUI()
