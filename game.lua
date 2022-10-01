@@ -13,8 +13,6 @@ function Game:init()
   -- Window setup
   Game:calculateScaling()
 
-  local houseGen = HouseGenerator()
-  self.house = houseGen:generate()
   -- houseGen:draw()
 end
 
@@ -22,6 +20,9 @@ function Game:enter()
   self.world = wf.newWorld(0, 0, true)
   self.world:addCollisionClass('Solid')
   self.world:addCollisionClass('Player')
+
+  local houseGen = HouseGenerator(self.world)
+  self.house = houseGen:generate()
 
   self.player = Player(self, self.world)
 

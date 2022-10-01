@@ -16,7 +16,8 @@ TR = 4
 minRoomSize = 50
 
 local HouseGenerator = Class {
-  init = function(self)
+  init = function(self, world)
+    self.world = world
   end,
   grid = {
     id = 0,
@@ -49,11 +50,55 @@ function HouseGenerator:generate()
     local root = self:node(nil, rect)
     self:splitNode(root)
 
-    local house = House()
-    house.rooms = self:getRooms(root)
+    local rooms = self:getRooms(root)
+    local walls = self:getWalls(rooms)
+
+    local house = House(self.world, rooms, walls)
 
     print(inspect(house.rooms))
     return house
+end
+
+function HouseGenerator:getWalls(rooms)
+    local walls = {}
+    local wallWidth = 2
+
+    for _, room in ipairs(rooms) do
+        local top = {
+            x = room.rect[TL].x,
+            y = room.rect[TL].y-1,
+            w = room.w,
+            h = 2,
+        }
+        table.insert(walls, top)
+
+        local bottom = {
+            x = room.rect[TL].x,
+            y = room.rect[TL].y + room.h -1,
+            w = room.w,
+            h = 2,
+        }
+        table.insert(walls, bottom)
+
+        local left = {
+            x = room.rect[TL].x-1,
+            y = room.rect[TL].y,
+            w = wallWidth,
+            h = room.h,
+        }
+        table.insert(walls, left)
+
+        local right = {
+            x = room.rect[TL].x + room.w -1,
+            y = room.rect[TL].y,
+            w = wallWidth,
+            h = room.h,
+        }
+        table.insert(walls, right)
+
+    end
+
+    return walls
 end
 
 function HouseGenerator:getRooms(node) 

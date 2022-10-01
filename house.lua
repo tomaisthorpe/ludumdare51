@@ -1,11 +1,23 @@
 local Class = require("hump.class")
 
 local House = Class {
-  init = function(self)
+  init = function(self, world, rooms, walls)
+    self.world = world
+    self.rooms = rooms
+    self.walls = walls
+
+    self:setupWalls()
   end,
-  rooms = {},
 }
 
+function House:setupWalls()
+
+    for _, wall in ipairs(self.walls) do
+        local obj = self.world:newRectangleCollider(wall.x, wall.y, wall.w, wall.h)
+        obj:setCollisionClass('Solid')
+        obj:setType('static')
+    end
+end
 
 function House:draw()
     -- Loop through the rooms and just draw them
