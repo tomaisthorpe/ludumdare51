@@ -1,5 +1,7 @@
 local config = require("config")
 local HouseGenerator = require("house-generator")
+local wf = require("windfield")
+local Player = require("player")
 
 local Game = {
   translate = {0, 0},
@@ -16,9 +18,17 @@ function Game:init()
 end
 
 function Game:enter()
+  self.world = wf.newWorld(0, 0, true)
+  self.world:addCollisionClass('Solid')
+  self.world:addCollisionClass('Player')
+
+  self.player = Player(self, self.world)
 end
 
 function Game:update(dt)
+  self.world:update(dt)
+
+  self.player:update(dt)
 end
 
 function Game:draw()
@@ -46,6 +56,11 @@ end
 
 function Game:drawGame()
   self.house:draw()
+  self.player:draw()
+
+  if config.physicsDebug then
+    self.world:draw(1)
+  end
 end
 
 function Game:drawUI()
