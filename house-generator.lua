@@ -78,39 +78,49 @@ function HouseGenerator:generate()
             local selectedBoundaries = self:getBoundaries(selectedRooms)
             local walls, doors = self:getWallsAndDoors(selectedBoundaries)
 
-            local house = House(self.world, selectedRooms, walls, doors, self.grid, startingRoom)
+            if self:isLayoutValid(selectedRooms, doors, startingRoom) then
+                print("doors", inspect(doors))
 
-            return house
+                local house = House(self.world, selectedRooms, walls, doors, self.grid, startingRoom)
+
+                return house
+            end
         end
 
     end
 end
 
-function HouseGenerator:isValidRoom(room)
-    local x = room.rect[TL].x
-    local y = room.rect[TL].y
+function HouseGenerator:isLayoutValid(rooms, doors, startingRoom)
+    local currentIDs = {
+        [startingRoom.id] = true,
+    }
 
-    return true or x > 0 and y > 0
+    print(inspect(currentIDs), inspect(startingRoom))
+
+    local count = 0
+    while count < #doors do
+        -- Loop through all doors, any door that has a entry in currentIDs, can be accessed
+        -- So those room IDs can be added to the list
+        for _, door in ipairs(doors) do
+            if currentIDs[door.between[1]] or currentIDs[door.between[2]] then
+                currentIDs[door.between[1]] = true
+                currentIDs[door.between[2]] = true
+            end
+        end
+
+        count = count + 1
+    end
+
+    local found = {}
+    for k, _ in pairs(currentIDs) do
+        table.insert(found, k)
+    end
+
+    return #rooms == #found
 end
 
 function HouseGenerator:chooseStartingRoom(rooms)
-    while true do
-        local startingRoom = rooms[love.math.random(1, #rooms - 1)]
-
-        if self:isValidRoom(startingRoom) then
-            return startingRoom
-        end
-    end
-end
-
-function HouseGenerator:isValidRoomID(rooms, id)
-    for _, room in ipairs(rooms) do
-        if room.id == id then
-            return self:isValidRoom(room)
-        end
-    end
-
-    return false
+    return rooms[love.math.random(1, #rooms - 1)]
 end
 
 function HouseGenerator:selectRooms(rooms, boundaries)
@@ -137,10 +147,10 @@ function HouseGenerator:selectRooms(rooms, boundaries)
         end
 
         local chosenBoundary = selectedBoundaries[love.math.random(1, #selectedBoundaries)]
-        if not selectedRoomIDs[chosenBoundary.between[1]] and self:isValidRoomID(rooms, chosenBoundary.between[1]) then
+        if not selectedRoomIDs[chosenBoundary.between[1]] then
             selectedRoomIDs[chosenBoundary.between[1]] = true
             roomCount = roomCount + 1
-        elseif not selectedRoomIDs[chosenBoundary.between[2]] and self:isValidRoomID(rooms, chosenBoundary.between[2]) then
+        elseif not selectedRoomIDs[chosenBoundary.between[2]] then
             selectedRoomIDs[chosenBoundary.between[2]] = true
             roomCount = roomCount + 1
         end
@@ -376,7 +386,7 @@ function HouseGenerator:getWallsAndDoors(boundaries)
     for _, boundary in ipairs(boundaries) do
         -- Check if should add a door
         -- This is random and doesn't guarantee that all rooms are reachable
-        local hasDoor = love.math.random(0, 4) >= 0 and boundary.length > config.doorWidth + 2
+        local hasDoor = love.math.random(0, 4) >= 1 and boundary.length > config.doorWidth + 2
 
         if hasDoor and boundary.outside == false then
             local doorPosition = math.floor((boundary.length - config.doorWidth) / 2)
@@ -388,7 +398,7 @@ function HouseGenerator:getWallsAndDoors(boundaries)
                         boundary.length - doorPosition - config.doorWidth,
                         true))
 
-                table.insert(doors, self:door(boundary.x, boundary.y + doorPosition, true))
+                table.insert(doors, self:door(boundary.between, boundary.x, boundary.y + doorPosition, true))
 
                 -- Update the grid with the door so pathfinding knows the enemy can traverse here
                 self.grid:set(boundary.x, boundary.y + doorPosition, "d")
@@ -402,7 +412,7 @@ function HouseGenerator:getWallsAndDoors(boundaries)
                         boundary.length - doorPosition - config.doorWidth,
                         false))
 
-                table.insert(doors, self:door(boundary.x + doorPosition, boundary.y, false))
+                table.insert(doors, self:door(boundary.between, boundary.x + doorPosition, boundary.y, false))
 
                 -- Update the grid with the door so pathfinding knows the enemy can traverse here
                 self.grid:set(boundary.x + doorPosition, boundary.y, "d")
@@ -439,12 +449,13 @@ function HouseGenerator:wall(x, y, length, vertical)
     }
 end
 
-function HouseGenerator:door(x, y, vertical)
+function HouseGenerator:door(between, x, y, vertical)
     local gs = config.gridScale
     return {
         x = x * gs,
         y = y * gs,
         vertical = vertical,
+        between = between,
     }
 end
 
