@@ -6,7 +6,7 @@ local Player = Class {
     self.game = game
     self.world = world
 
-    self.object = world:newRectangleCollider(x, y, 32, 32)
+    self.object = world:newCircleCollider(x, y, 16)
     self.object:setCollisionClass('Player')
     self.object:setObject(self)
     self.object:setFixedRotation(true)
@@ -85,10 +85,10 @@ function Player:draw()
   -- Translate as we need to draw at 0,0 for rotation
   love.graphics.translate(self:getX(), self:getY())
   love.graphics.rotate(self.object:getAngle() - math.pi / 2)
-  love.graphics.translate(-16, -16)
 
   love.graphics.setColor(0, 1, 0)
-  love.graphics.rectangle("fill", 0, 0, 32, 32)
+  love.graphics.circle("fill", 0, 0, 16)
+  -- love.graphics.rectangle("fill", 0, 0, 32, 32)
 
   love.graphics.pop()
 end

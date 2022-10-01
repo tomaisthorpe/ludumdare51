@@ -8,6 +8,7 @@ local Door = Class {
         self.vertical = vertical
 
         local hinge = world:newCircleCollider(x, y, 2)
+        hinge:setCollisionClass('Hinge')
         hinge:setType('static')
 
         self.w = 47

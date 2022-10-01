@@ -8,7 +8,7 @@ local config = require("config")
 local inspect = require("inspect")
 local House = require("house")
 
-MAX_RECURSION = 5
+MAX_RECURSION = 4
 
 TL = 1
 BL = 2
@@ -79,8 +79,6 @@ function HouseGenerator:generate()
             local walls, doors = self:getWallsAndDoors(selectedBoundaries)
 
             if self:isLayoutValid(selectedRooms, doors, startingRoom) then
-                print("doors", inspect(doors))
-
                 local house = House(self.world, selectedRooms, walls, doors, self.grid, startingRoom)
 
                 return house
@@ -95,7 +93,6 @@ function HouseGenerator:isLayoutValid(rooms, doors, startingRoom)
         [startingRoom.id] = true,
     }
 
-    print(inspect(currentIDs), inspect(startingRoom))
 
     local count = 0
     while count < #doors do
@@ -116,7 +113,19 @@ function HouseGenerator:isLayoutValid(rooms, doors, startingRoom)
         table.insert(found, k)
     end
 
-    return #rooms == #found
+    if #rooms ~= #found then
+        return false
+    end
+
+    -- Check rooms aren't weird sizes
+    for _, room in ipairs(rooms) do
+        if room.gw > config.generator.maxRoomWidth or room.gh > config.generator.maxRoomHeight or
+            room.gw * room.gh > config.generator.maxRoomArea then
+            return false
+        end
+    end
+
+    return true
 end
 
 function HouseGenerator:chooseStartingRoom(rooms)

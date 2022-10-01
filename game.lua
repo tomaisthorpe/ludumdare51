@@ -19,9 +19,10 @@ end
 
 function Game:enter()
   self.world = wf.newWorld(0, 0, true)
-  self.world:addCollisionClass('Solid')
-  self.world:addCollisionClass('Player', { ignores = { 'Solid' } })
-  self.world:addCollisionClass('Enemy')
+  self.world:addCollisionClass('Hinge')
+  self.world:addCollisionClass('Solid', { ignores = { 'Hinge' } })
+  self.world:addCollisionClass('Player', { ignores = { 'Hinge' } })
+  self.world:addCollisionClass('Enemy', { ignores = { 'Hinge' } })
   self.world:addCollisionClass('Bullet', { ignores = { 'Bullet', 'Solid', 'Enemy', 'Player' } })
 
   local houseGen = HouseGenerator(self.world)

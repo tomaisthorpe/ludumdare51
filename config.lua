@@ -1,5 +1,5 @@
 local config = {
-  physicsDebug = false,
+  physicsDebug = true,
   fullscreen = false,
 
   borderColor = { 9 / 255, 18 / 255, 26 / 255 },
@@ -21,6 +21,12 @@ local config = {
 
   wallColor = { 0.5, 0.5, 0.5 },
   doorColor = { 0.7, 0.7, 0.7 },
+
+  generator = {
+    maxRoomWidth = 40,
+    maxRoomHeight = 40,
+    maxRoomArea = 30 * 20,
+  }
 }
 
 return config
