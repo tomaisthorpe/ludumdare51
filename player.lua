@@ -15,7 +15,18 @@ local Player = Class {
   speed = 4000,
   fireRate = 0.2,
   lastShot = 0,
+  health = 100,
 }
+
+function Player:damage(dmg)
+  self.health = self.health - 0.3 * dmg
+
+  if self.health <= 0 then
+    self.dead = true
+    self.health = 0
+    self.game:gameOver()
+  end
+end
 
 function Player:getX()
   return self.object:getX()

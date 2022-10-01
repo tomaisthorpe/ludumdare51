@@ -1,6 +1,7 @@
 local Class = require("hump.class")
 local inspect = require("inspect")
 local config = require("config")
+local Bullet = require("bullet")
 require("a-star")
 
 local Enemy = Class {
@@ -20,6 +21,8 @@ local Enemy = Class {
   path = nil,
   dead = false,
   pathDOB = 0,
+  fireRate = 1,
+  lastShot = 0,
 }
 
 function Enemy:getX()
@@ -59,22 +62,16 @@ function Enemy:update(dt)
   local vx = self.speed * self.object:getMass()
   local vy = self.speed * self.object:getMass()
 
-  if self.path == nil then
-    -- raycast between enemy and player to check if enemy can see the player
-    local colliders = self.world:queryLine(self:getX(), self:getY(), self.game.player:getX(), self.game.player:getY(),
-      { 'Solid' })
+  if self.path == nil and self:canSeePlayer() then
+    local dist = self:distToPlayer()
 
-    if #colliders then
-      local dist = self:distToPlayer()
+    if dist > config.enemyChaseDistance.min and dist < config.enemyChaseDistance.max then
+      self.path = self.game.house:path(
+        { x = self:getX(), y = self:getY() },
+        { x = self.game.player:getX(), y = self.game.player:getY() }
+      )
 
-      if dist > config.enemyChaseDistance.min and dist < config.enemyChaseDistance.max then
-        self.path = self.game.house:path(
-          { x = self:getX(), y = self:getY() },
-          { x = self.game.player:getX(), y = self.game.player:getY() }
-        )
-
-        self.pathDOB = love.timer.getTime()
-      end
+      self.pathDOB = love.timer.getTime()
     end
   end
 
@@ -104,6 +101,42 @@ function Enemy:update(dt)
       self:moveTo(dt, target.x, target.y, 1)
     end
   end
+
+  -- Check if we should shoot the player
+  -- Player needs to be under a set distance and enemy can actually see them
+  if self:distToPlayer() < config.enemyShootDistance and self:canSeePlayer() then
+    local player = self.game.player
+    local theta = math.atan2(player:getY() - self:getY(), player:getX() - self:getY())
+    self.object:setAngle(theta - math.pi)
+    self:shoot()
+  end
+end
+
+function Enemy:shoot()
+  -- Check the user can actually shoot
+  if self.lastShot >= love.timer.getTime() - self.fireRate then
+    return
+  end
+
+  self.lastShot = love.timer.getTime()
+
+  local px = self.game.player:getX()
+  local py = self.game.player:getY()
+
+  local dx = px - self:getX()
+  local dy = py - self:getY()
+  local theta = math.atan2(dy, dx)
+
+  local bullet = Bullet(self.game, self.world, self:getX(), self:getY(), theta, 'Player')
+  self.game:addEntity(bullet)
+end
+
+function Enemy:canSeePlayer()
+  -- raycast between enemy and player to check if enemy can see the player
+  local colliders = self.world:queryLine(self:getX(), self:getY(), self.game.player:getX(), self.game.player:getY(),
+    { 'Solid' })
+
+  return #colliders == 0
 end
 
 function Enemy:distToPlayer()

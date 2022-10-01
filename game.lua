@@ -174,4 +174,8 @@ function Game:keypressed(key)
   end
 end
 
+function Game:gameOver()
+  love.event.quit()
+end
+
 return Game

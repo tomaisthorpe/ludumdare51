@@ -2,20 +2,22 @@ local Class = require("hump.class")
 require("a-star")
 local inspect = require("inspect")
 local config = require("config")
+local Wall = require("wall")
+local Door = require("door")
 
 local House = Class {
     init = function(self, world, rooms, walls, doors, grid)
         self.world = world
         self.rooms = rooms
-        self.walls = walls
-        self.doors = doors
         self.grid = grid
 
-        self:setupWalls()
-        self:setupDoors()
+        self:setupWalls(walls)
+        self:setupDoors(doors)
         self:generateNodes()
     end,
     nodes = {},
+    walls = {},
+    doors = {},
 }
 
 function House:generateNodes()
@@ -36,7 +38,6 @@ function House:getNode(x, y)
             return node
         end
     end
-
 
     return nil
 end
@@ -79,33 +80,18 @@ function House:path(start, goal)
     return path
 end
 
-function House:setupWalls()
-    for _, wall in ipairs(self.walls) do
-        local obj = self.world:newRectangleCollider(wall.x, wall.y, wall.w, wall.h)
-        obj:setCollisionClass('Solid')
-        obj:setType('static')
+function House:setupWalls(walls)
+    for _, wall in ipairs(walls) do
+        local w = Wall(self.world, wall.x, wall.y, wall.w, wall.h)
+        table.insert(self.walls, w)
     end
 end
 
-function House:setupDoors()
-    for _, door in ipairs(self.doors) do
-        local hinge = self.world:newCircleCollider(door.x, door.y, 2)
-        hinge:setType('static')
-
-        local w = 47
-        local h = 2
-
-        if door.vertical then
-            w = 2
-            h = 47
-        end
-
-        local obj = self.world:newRectangleCollider(door.x, door.y, w, h)
-        obj:setCollisionClass('Solid')
-
-        self.world:addJoint('RevoluteJoint', hinge, obj, door.x, door.y, false)
+function House:setupDoors(doors)
+    for _, door in ipairs(doors) do
+        local d = Door(self.world, door.x, door.y, door.vertical)
+        table.insert(self.doors, d)
     end
-
 end
 
 function House:draw()
@@ -114,6 +100,14 @@ function House:draw()
     for _, room in ipairs(self.rooms) do
         love.graphics.setColor(room.color[1], room.color[2], room.color[3])
         love.graphics.rectangle("fill", room.rect[1].x, room.rect[1].y, room.w, room.h)
+    end
+
+    for _, wall in ipairs(self.walls) do
+        wall:draw()
+    end
+
+    for _, door in ipairs(self.doors) do
+        door:draw()
     end
 end
 
