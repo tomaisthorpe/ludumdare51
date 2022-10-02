@@ -34,7 +34,7 @@ function Player:damage(dmg)
   if self.health <= 0 then
     self.dead = true
     self.health = 0
-    self.game:gameOver()
+    self.game:gameOver("killed")
   end
 end
 

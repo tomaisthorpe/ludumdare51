@@ -20,6 +20,8 @@ function Game:init()
 
   self.font = love.graphics.newFont('assets/sharetech.ttf', 16)
   self.largeFont = love.graphics.newFont('assets/sharetech.ttf', 32)
+  self.xlFont = love.graphics.newFont('assets/sharetech.ttf', 42)
+  self.xxlFont = love.graphics.newFont('assets/sharetech.ttf', 52)
 end
 
 function Game:enter(prev, level, lives)
@@ -43,7 +45,7 @@ function Game:enter(prev, level, lives)
   self:setup()
 end
 
-function Game:setup()
+function Game:setup(startStarted)
   self.house = House(self.world, self.houseConfig)
 
   self.player = Player(self, self.world, self.house.startingPosition.x, self.house.startingPosition.y)
@@ -54,6 +56,12 @@ function Game:setup()
   end
 
   self.entities = {}
+  self.started = false
+  if startStarted then
+    self.started = true
+  end
+  self.paused = false
+  self.timeLeft = 10
 end
 
 function Game:reset()
@@ -70,10 +78,41 @@ function Game:reset()
     entity:destroy()
   end
 
-  self:setup()
+  self:setup(true)
 end
 
 function Game:update(dt)
+  self.camera:update(dt)
+  self.camera:follow(self.player:getX(), self.player:getY())
+
+  if not self.started then
+    if love.keyboard.isDown("space") then
+      self.started = true
+    end
+
+    return
+  end
+
+  if self.paused then
+
+    if love.keyboard.isDown("space") then
+      if self.lives > 0 then
+        self:reset()
+      else
+        love.event.quit()
+      end
+    end
+
+    return
+  end
+
+  self.timeLeft = self.timeLeft - dt
+  if self.timeLeft < 0 then
+    self.timeLeft = 0
+    self:gameOver("time")
+    return
+  end
+
   self.world:update(dt)
 
   self.house:update(dt)
@@ -94,9 +133,6 @@ function Game:update(dt)
       e:update(dt)
     end
   end
-
-  self.camera:update(dt)
-  self.camera:follow(self.player:getX(), self.player:getY())
 end
 
 function Game:draw()
@@ -177,9 +213,13 @@ function Game:drawUI()
   love.graphics.setColor(config.uiPalette.text)
   love.graphics.printf("Lives: " .. self.lives, 0, 0, config.windowWidth - config.uiSizing.margin * 2, "right")
 
-  local healthX = (config.windowWidth - config.uiSizing.margin * 2 - config.uiSizing.healthWidth) / 2
-  self:drawBar("Health", healthX, 6, config.uiSizing.healthWidth, config.uiPalette.health,
+  local barX = (config.windowWidth - config.uiSizing.margin * 2 - config.uiSizing.healthWidth) / 2
+  self:drawBar("Health", barX, 6, config.uiSizing.healthWidth, config.uiPalette.health,
     self.player.health / 100)
+
+  self:drawBar("Time Left", barX, config.uiSizing.barHeight + config.uiSizing.margin, config.uiSizing.healthWidth,
+    config.uiPalette.timeLeft,
+    self.timeLeft / 10)
 
   love.graphics.setFont(self.largeFont)
   love.graphics.setColor(0.5, 0.5, 0.5)
@@ -187,6 +227,58 @@ function Game:drawUI()
 
   love.graphics.setColor(config.uiPalette.text)
   love.graphics.printf("Level " .. self.level, 0, 0, config.windowWidth - config.uiSizing.margin * 2)
+
+  if not self.started then
+    love.graphics.setFont(self.xlFont)
+    love.graphics.setColor(0.5, 0.5, 0.5)
+    love.graphics.printf("Press space to start", 0, 501, config.windowWidth - config.uiSizing.margin * 2, "center")
+
+    love.graphics.setColor(config.uiPalette.text)
+    love.graphics.printf("Press space to start", 0, 500, config.windowWidth - config.uiSizing.margin * 2, "center")
+  end
+
+  if self.paused then
+    local text = "You were killed!"
+    if self.gameOverReason == "time" then
+      text = "You ran out of time!"
+    end
+
+    if self.lives == 0 then
+      love.graphics.setFont(self.xxlFont)
+      love.graphics.setColor(0.5, 0.5, 0.5)
+      love.graphics.printf("GAME OVER", 0, config.windowHeight - 96 - config.uiSizing.margin * 3 + 1,
+        config.windowWidth - config.uiSizing.margin * 2, "center")
+
+      love.graphics.setColor(config.uiPalette.gameOver)
+      love.graphics.printf("GAME OVER", 0, config.windowHeight - 96 - config.uiSizing.margin * 3,
+        config.windowWidth - config.uiSizing.margin * 2, "center")
+    end
+
+    love.graphics.setFont(self.xlFont)
+    love.graphics.setColor(0.5, 0.5, 0.5)
+    love.graphics.printf(text, 0, config.windowHeight - 52 - config.uiSizing.margin * 3 + 1,
+      config.windowWidth - config.uiSizing.margin * 2, "center")
+
+    love.graphics.setColor(config.uiPalette.gameOver)
+    love.graphics.printf(text, 0, config.windowHeight - 52 - config.uiSizing.margin * 3,
+      config.windowWidth - config.uiSizing.margin * 2, "center")
+
+
+    local action = "try again"
+    if self.lives == 0 then
+      action = "quit"
+    end
+
+    love.graphics.setFont(self.largeFont)
+    love.graphics.setColor(0.5, 0.5, 0.5)
+    love.graphics.printf("Press space to try " .. action, 0, config.windowHeight - 32 - config.uiSizing.margin * 2 + 1,
+      config.windowWidth - config.uiSizing.margin * 2, "center")
+
+    love.graphics.setColor(config.uiPalette.mutedText)
+    love.graphics.printf("Press space to try " .. action, 0, config.windowHeight - 32 - config.uiSizing.margin * 2,
+      config.windowWidth - config.uiSizing.margin * 2, "center")
+  end
+
 
   love.graphics.pop()
 end
@@ -252,14 +344,10 @@ function Game:keypressed(key)
   end
 end
 
-function Game:gameOver()
+function Game:gameOver(reason)
+  self.paused = true
+  self.gameOverReason = reason
   self.lives = self.lives - 1
-  if self.lives <= 0 then
-    love.event.quit()
-    return
-  end
-
-  self:reset()
 end
 
 return Game

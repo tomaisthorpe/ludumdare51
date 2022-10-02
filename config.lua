@@ -16,7 +16,10 @@ local config = {
 
   uiPalette = {
     text = { 1, 1, 1 },
+    gameOver = { 1, 1, 1 },
+    mutedText = { 0.8, 0.8, 0.8 },
     health = { 0.9, 0, 0 },
+    timeLeft = { 0.9, 0.6, 0 },
     level = { 1, 0, 1 },
   },
 
