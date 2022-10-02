@@ -20,7 +20,8 @@ end
 function Game:enter()
   self.world = wf.newWorld(0, 0, true)
   self.world:addCollisionClass('Hinge')
-  self.world:addCollisionClass('Solid', { ignores = { 'Hinge' } })
+  self.world:addCollisionClass('Door', { ignores = { 'Hinge' } })
+  self.world:addCollisionClass('Solid', { ignores = { 'Hinge', 'Door' } })
   self.world:addCollisionClass('Player', { ignores = { 'Hinge' } })
   self.world:addCollisionClass('Enemy', { ignores = { 'Hinge' } })
   self.world:addCollisionClass('Bullet', { ignores = { 'Bullet', 'Solid', 'Enemy', 'Player' } })
@@ -45,6 +46,7 @@ end
 function Game:update(dt)
   self.world:update(dt)
 
+  self.house:update(dt)
   self.player:update(dt)
 
   for i, e in ipairs(self.enemies) do

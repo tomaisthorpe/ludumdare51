@@ -100,6 +100,12 @@ function House:setupDoors(doors)
     end
 end
 
+function House:update(dt)
+    for _, door in ipairs(self.doors) do
+        door:update(dt)
+    end
+end
+
 function House:draw()
     -- Loop through the rooms and just draw them
 
@@ -108,12 +114,13 @@ function House:draw()
         love.graphics.rectangle("fill", room.rect[1].x, room.rect[1].y, room.w, room.h)
     end
 
-    for _, wall in ipairs(self.walls) do
-        wall:draw()
-    end
 
     for _, door in ipairs(self.doors) do
         door:draw()
+    end
+
+    for _, wall in ipairs(self.walls) do
+        wall:draw()
     end
 end
 

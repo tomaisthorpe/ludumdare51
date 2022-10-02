@@ -1,5 +1,6 @@
 local Class = require("hump.class")
 local config = require("config")
+local inspect = require("inspect")
 
 local Door = Class {
     init = function(self, world, x, y, vertical)
@@ -11,18 +12,30 @@ local Door = Class {
         hinge:setCollisionClass('Hinge')
         hinge:setType('static')
 
-        self.w = 47
+
+        self.w = 48
         self.h = 2
 
         if vertical then
             self.w = 2
-            self.h = 47
+            self.h = 48
+            x = x - 1
+        else
+            y = y - 1
         end
 
         self.obj = world:newRectangleCollider(x, y, self.w, self.h)
-        self.obj:setCollisionClass('Solid')
+        self.obj:setCollisionClass('Door')
+        self.obj:setMass(1)
+        self.obj:setLinearDamping(4)
 
-        world:addJoint('RevoluteJoint', hinge, self.obj, x, y, false)
+        self.joint = world:addJoint('RevoluteJoint', hinge, self.obj, x + 1, y + 1, true)
+
+        self.joint:setMaxMotorTorque(5000)
+        self.joint:setMotorEnabled(true)
+
+        self.joint:setLimits(-math.pi * 0.7, math.pi * 0.7)
+        self.joint:setLimitsEnabled(true)
     end,
 }
 
@@ -32,6 +45,13 @@ end
 
 function Door:getY()
     return self.obj:getY()
+end
+
+function Door:update(dt)
+    -- Target is 0 so don't need to compare
+    local diff = self.obj:getAngle()
+
+    self.joint:setMotorSpeed(-diff * 50)
 end
 
 function Door:draw()
