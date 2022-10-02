@@ -160,9 +160,9 @@ function Enemy:draw()
 
   love.graphics.pop()
 
-  if self.path then
-    self.game:drawPath(self.path)
-  end
+  -- if self.path then
+  --   self.game:drawPath(self.path)
+  -- end
 end
 
 return Enemy

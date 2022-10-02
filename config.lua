@@ -42,8 +42,7 @@ local config = {
     max = 250,
     min = 150,
   },
-  enemyPathInterval = 0.5,
-
+  enemyPathInterval = 1,
 
   wallColor = { 0.5, 0.5, 0.5 },
   doorColor = { 0.407, 0.266, 0.2 },

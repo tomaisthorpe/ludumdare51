@@ -189,6 +189,12 @@ end
 function Game:drawGame()
   self.house:draw()
 
+  for _, entity in ipairs(self.entities) do
+    if not entity.dead then
+      entity:draw()
+    end
+  end
+
   for _, enemy in ipairs(self.enemies) do
     if not enemy.dead then
       enemy:draw()
@@ -196,12 +202,6 @@ function Game:drawGame()
   end
 
   self.player:draw()
-
-  for _, entity in ipairs(self.entities) do
-    if not entity.dead then
-      entity:draw()
-    end
-  end
 
   if config.physicsDebug then
     self.world:draw(1)

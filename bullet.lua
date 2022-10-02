@@ -65,7 +65,7 @@ function Bullet:draw()
   love.graphics.setColor(0.8, 0, 0)
   love.graphics.translate(self.object:getX(), self.object:getY())
   love.graphics.rotate(self.object:getAngle())
-  love.graphics.rectangle('fill', -12, -6, 24, 12)
+  love.graphics.rectangle('fill', -6, -3, 12, 6)
 
   love.graphics.pop()
 end
