@@ -12,7 +12,7 @@ function love.load()
 
   Gamestate.switch(GameManager)
 
-  love.window.setTitle("Ludum Dare 51")
+  love.window.setTitle("House Hitman")
 end
 
 function setupWindow()
