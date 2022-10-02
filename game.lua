@@ -17,11 +17,14 @@ local Game = {
 function Game:init()
   -- Window setup
   Game:calculateScaling()
+
+  self.font = love.graphics.newFont('assets/sharetech.ttf', 16)
+  self.largeFont = love.graphics.newFont('assets/sharetech.ttf', 32)
 end
 
-function Game:enter(prev, lives, seed)
+function Game:enter(prev, level, lives)
+  self.level = level
   self.lives = lives
-  print('enter with seed', seed)
   self.world = wf.newWorld(0, 0, true)
   self.world:addCollisionClass('Hinge')
   self.world:addCollisionClass('Door', { ignores = { 'Hinge' } })
@@ -30,13 +33,8 @@ function Game:enter(prev, lives, seed)
   self.world:addCollisionClass('Enemy', { ignores = { 'Hinge' } })
   self.world:addCollisionClass('Bullet', { ignores = { 'Bullet', 'Solid', 'Enemy', 'Player' } })
 
-  if seed == nil then
-    seed = love.timer.getTime()
-  end
-  self.seed = seed
-
   local houseGen = HouseGenerator(self.world)
-  self.houseConfig = houseGen:generate(seed)
+  self.houseConfig = houseGen:generate()
   houseGen:draw()
 
   self.camera = Camera(0, 0, 800, 600)
@@ -169,6 +167,51 @@ end
 
 function Game:drawUI()
   love.graphics.push()
+
+  love.graphics.translate(config.uiSizing.margin, config.uiSizing.margin)
+
+  love.graphics.setFont(self.font)
+  love.graphics.setColor(0.5, 0.5, 0.5)
+  love.graphics.printf("Lives: " .. self.lives, 0, 1, config.windowWidth - config.uiSizing.margin * 2, "right")
+
+  love.graphics.setColor(config.uiPalette.text)
+  love.graphics.printf("Lives: " .. self.lives, 0, 0, config.windowWidth - config.uiSizing.margin * 2, "right")
+
+  local healthX = (config.windowWidth - config.uiSizing.margin * 2 - config.uiSizing.healthWidth) / 2
+  self:drawBar("Health", healthX, 6, config.uiSizing.healthWidth, config.uiPalette.health,
+    self.player.health / 100)
+
+  love.graphics.setFont(self.largeFont)
+  love.graphics.setColor(0.5, 0.5, 0.5)
+  love.graphics.printf("Level " .. self.level, 0, 1, config.windowWidth - config.uiSizing.margin * 2)
+
+  love.graphics.setColor(config.uiPalette.text)
+  love.graphics.printf("Level " .. self.level, 0, 0, config.windowWidth - config.uiSizing.margin * 2)
+
+  love.graphics.pop()
+end
+
+function Game:drawBar(label, x, y, width, color, value)
+  love.graphics.push()
+
+  love.graphics.translate(x, y)
+  love.graphics.setLineWidth(config.uiSizing.strokeWidth)
+
+  local level = (width - config.uiSizing.barPadding * 2) * value
+
+  love.graphics.setColor(color)
+
+  love.graphics.rectangle("line", 0, 0, width, config.uiSizing.barHeight)
+  love.graphics.rectangle("fill", config.uiSizing.barPadding, config.uiSizing.barPadding, level,
+    config.uiSizing.barHeight - config.uiSizing.barPadding * 2)
+
+  love.graphics.setColor(0.4, 0.4, 0.4)
+  love.graphics.setFont(self.font)
+  love.graphics.printf(label, 5, 4, 200)
+
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.setFont(self.font)
+  love.graphics.printf(label, 5, 3, 200)
 
   love.graphics.pop()
 end

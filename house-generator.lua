@@ -40,7 +40,6 @@ local HouseGenerator = Class {
 }
 
 function HouseGenerator:generate()
-    -- love.math.setRandomSeed(30)
 
     while true do
         self.grid:reset()

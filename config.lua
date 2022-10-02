@@ -1,10 +1,24 @@
 local config = {
   physicsDebug = false,
-  fullscreen = false,
+  fullscreen = true,
 
   borderColor = { 9 / 255, 18 / 255, 26 / 255 },
   windowWidth = 800,
   windowHeight = 600,
+
+  uiSizing = {
+    margin = 16,
+    strokeWidth = 2,
+    barPadding = 2,
+    barHeight = 26,
+    healthWidth = 300,
+  },
+
+  uiPalette = {
+    text = { 1, 1, 1 },
+    health = { 0.9, 0, 0 },
+    level = { 1, 0, 1 },
+  },
 
   gridScale = 16,
   wallWidth = 2,
