@@ -11,8 +11,13 @@ function GameManager:enter()
 end
 
 function GameManager:resume(prev, lives)
-    self.lives = lives
-    self.level = self.level + 1
+    if lives == 0 then
+        self.lives = 3
+        self.level = 1
+    else
+        self.lives = lives
+        self.level = self.level + 1
+    end
 
     Gamestate.push(Game(), self.level, self.lives)
 end

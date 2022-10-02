@@ -42,7 +42,7 @@ function Game:enter(prev, level, lives)
 
   local houseGen = HouseGenerator(self.world, level)
   self.houseConfig = houseGen:generate()
-  houseGen:draw()
+  -- houseGen:draw()
 
   self.camera = Camera(0, 0, 800, 600)
   self.camera:setFollowStyle('TOPDOWN_TIGHT')
@@ -114,7 +114,7 @@ function Game:keyreleased(key)
       if self.lives > 0 then
         self:reset()
       else
-        love.event.quit()
+        Gamestate.pop(0)
       end
     end
   end
@@ -291,11 +291,7 @@ function Game:drawUI()
     love.graphics.printf(text, 0, config.windowHeight - 52 - config.uiSizing.margin * 3,
       config.windowWidth - config.uiSizing.margin * 2, "center")
 
-
     local action = "try again"
-    if self.lives == 0 then
-      action = "quit"
-    end
 
     love.graphics.setFont(self.largeFont)
     love.graphics.setColor(0.5, 0.5, 0.5)
