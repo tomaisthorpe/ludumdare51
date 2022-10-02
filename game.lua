@@ -25,6 +25,8 @@ function Game:init()
   self.largeFont = love.graphics.newFont('assets/sharetech.ttf', 32)
   self.xlFont = love.graphics.newFont('assets/sharetech.ttf', 42)
   self.xxlFont = love.graphics.newFont('assets/sharetech.ttf', 52)
+
+  self.liveImage = love.graphics.newImage("assets/heart.png")
 end
 
 function Game:enter(prev, level, lives)
@@ -324,7 +326,20 @@ function Game:drawUI()
       config.windowWidth - config.uiSizing.margin * 2, "center")
   end
 
+  self:drawLives()
+
   love.graphics.pop()
+end
+
+function Game:drawLives()
+  local start = config.startLives - self.lives
+
+  for i = 0, self.lives - 1 do
+    local y = config.uiSizing.margin
+    local x = config.windowWidth - config.uiSizing.margin * 2 - 32 * config.startLives + 2
+
+    love.graphics.draw(self.liveImage, x + 32 * i, y)
+  end
 end
 
 function Game:drawBar(label, x, y, width, color, value)

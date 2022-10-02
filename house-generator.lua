@@ -127,8 +127,6 @@ function HouseGenerator:getEnemyLocations(rooms)
         -- Choose a random room
         local room = allowedRooms[love.math.random(1, #allowedRooms)]
 
-        print("why", inspect(room))
-
         local minX = room.rect[1].x + 16
         local maxX = room.rect[1].x + room.w - 16
 
@@ -562,7 +560,8 @@ function HouseGenerator:getRooms(node)
             gy = node.rect[TL].y,
             gw = node.w,
             gh = node.h,
-            color = { love.math.random(), love.math.random(), love.math.random() }
+            color = { love.math.random(), love.math.random(), love.math.random() },
+            floor = config.floorTypes[love.math.random(1, #config.floorTypes)]
         } }
     end
 

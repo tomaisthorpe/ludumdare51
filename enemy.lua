@@ -8,6 +8,7 @@ local Enemy = Class {
   init = function(self, game, world, x, y)
     self.game = game
     self.world = world
+    self.image = love.graphics.newImage("assets/enemy.png")
 
     self.object = world:newRectangleCollider(x, y, 32, 32)
     self.object:setCollisionClass('Enemy')
@@ -154,8 +155,8 @@ function Enemy:draw()
   love.graphics.rotate(self.object:getAngle() - math.pi / 2)
   love.graphics.translate(-16, -16)
 
-  love.graphics.setColor(1, 0, 0)
-  love.graphics.rectangle("fill", 0, 0, 32, 32)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.draw(self.image)
 
   love.graphics.pop()
 

@@ -14,14 +14,14 @@ local Door = Class {
 
 
         self.w = 48
-        self.h = 2
+        self.h = 4
 
         if vertical then
-            self.w = 2
+            self.w = 4
             self.h = 48
-            x = x - 1
+            x = x - 2
         else
-            y = y - 1
+            y = y - 2
         end
 
         self.obj = world:newRectangleCollider(x, y, self.w, self.h)
@@ -29,7 +29,7 @@ local Door = Class {
         self.obj:setMass(1)
         self.obj:setLinearDamping(4)
 
-        self.joint = world:addJoint('RevoluteJoint', self.hinge, self.obj, x + 1, y + 1, true)
+        self.joint = world:addJoint('RevoluteJoint', self.hinge, self.obj, x + 2, y + 2, true)
 
         self.joint:setMaxMotorTorque(5000)
         self.joint:setMotorEnabled(true)

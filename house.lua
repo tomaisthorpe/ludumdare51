@@ -13,6 +13,15 @@ local House = Class {
         self.startingRoom = config.startingRoom
         self.enemyLocations = config.enemyLocations
 
+        self.carpet = love.graphics.newImage("assets/carpet.png")
+        self.carpet:setWrap("repeat", "repeat")
+
+        self.tile = love.graphics.newImage("assets/kitchen.png")
+        self.tile:setWrap("repeat", "repeat")
+
+        self.wood = love.graphics.newImage("assets/wood.png")
+        self.wood:setWrap("repeat", "repeat")
+
         self.startingPosition = {
             x = config.startingRoom.rect[1].x + config.startingRoom.w / 2,
             y = config.startingRoom.rect[1].y + config.startingRoom.h / 2,
@@ -121,8 +130,18 @@ function House:draw()
     -- Loop through the rooms and just draw them
 
     for _, room in ipairs(self.rooms) do
-        love.graphics.setColor(room.color[1], room.color[2], room.color[3])
-        love.graphics.rectangle("fill", room.rect[1].x, room.rect[1].y, room.w, room.h)
+        love.graphics.setColor(1, 1, 1)
+        local quad = love.graphics.newQuad(0, 0, room.w, room.h, 64, 64)
+        local image = self.carpet
+        if room.floor == "wood" then
+            image = self.wood
+        elseif room.floor == "tile" then
+            image = self.tile
+        end
+
+
+        love.graphics.draw(image, quad, room.rect[1].x, room.rect[1].y)
+
     end
 
 

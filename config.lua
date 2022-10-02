@@ -1,7 +1,8 @@
 local config = {
   physicsDebug = false,
-  fullscreen = false,
+  fullscreen = true,
 
+  startLives = 3,
   borderColor = { 9 / 255, 18 / 255, 26 / 255 },
   windowWidth = 800,
   windowHeight = 600,
@@ -11,6 +12,8 @@ local config = {
     enemies = { 2, 10 },
     maxLevel = 5,
   },
+
+  floorTypes = { "wood", "carpet", "tile" },
 
   uiSizing = {
     margin = 16,
@@ -30,7 +33,7 @@ local config = {
   },
 
   gridScale = 16,
-  wallWidth = 2,
+  wallWidth = 4,
   doorWidth = 3,
 
 
@@ -43,7 +46,7 @@ local config = {
 
 
   wallColor = { 0.5, 0.5, 0.5 },
-  doorColor = { 0.7, 0.7, 0.7 },
+  doorColor = { 0.407, 0.266, 0.2 },
 
   generator = {
     maxRoomWidth = 40,

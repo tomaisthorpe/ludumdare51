@@ -5,6 +5,7 @@ local Player = Class {
   init = function(self, game, world, x, y)
     self.game = game
     self.world = world
+    self.image = love.graphics.newImage("assets/player.png")
 
     self.object = world:newCircleCollider(x, y, 16)
     self.object:setCollisionClass('Player')
@@ -30,9 +31,7 @@ end
 function Player:damage(dmg)
   self.health = self.health - 0.3 * dmg
 
-  print(self.health)
-
-  if self.health <= 0 then
+  if not self.dead and self.health <= 0 then
     self.dead = true
     self.health = 0
     self.game:gameOver("killed")
@@ -71,6 +70,13 @@ function Player:update(dt)
     self.object:applyForce(0, vy)
   end
 
+  local _, _, cx, cy = self.game:getMousePosition()
+  local dx = cx - self:getX()
+  local dy = cy - self:getY()
+  local theta = math.atan2(dy, dx)
+
+  self.object:setAngle(theta)
+
   if love.mouse.isDown(1) then
     self:shoot()
   end
@@ -104,9 +110,10 @@ function Player:draw()
   -- Translate as we need to draw at 0,0 for rotation
   love.graphics.translate(self:getX(), self:getY())
   love.graphics.rotate(self.object:getAngle() - math.pi / 2)
+  love.graphics.translate(-16, -16)
 
-  love.graphics.setColor(0, 1, 0)
-  love.graphics.circle("fill", 0, 0, 16)
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.draw(self.image)
   -- love.graphics.rectangle("fill", 0, 0, 32, 32)
 
   love.graphics.pop()
