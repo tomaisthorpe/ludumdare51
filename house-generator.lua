@@ -79,14 +79,29 @@ function HouseGenerator:generate()
             local selectedBoundaries = self:getBoundaries(selectedRooms)
             local walls, doors = self:getWallsAndDoors(selectedBoundaries)
 
+
+            local enemyLocations = self:getEnemyLocations(selectedRooms)
+
             if self:isLayoutValid(selectedRooms, doors, startingRoom) then
-                local house = House(self.world, selectedRooms, walls, doors, self.grid, startingRoom)
+                local house = House(self.world, selectedRooms, walls, doors, self.grid, startingRoom, enemyLocations)
 
                 return house
             end
         end
 
     end
+end
+
+function HouseGenerator:getEnemyLocations(rooms)
+    -- First room is always a starting room
+    local secondRoom = rooms[2]
+    return {
+        {
+            x = secondRoom.rect[1].x + secondRoom.w / 2,
+            y = secondRoom.rect[1].y + secondRoom.h / 2,
+        }
+    }
+
 end
 
 function HouseGenerator:isLayoutValid(rooms, doors, startingRoom)

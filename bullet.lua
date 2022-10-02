@@ -4,7 +4,7 @@ local Bullet = Class {
   init = function(self, game, world, x, y, theta, targetClass)
     self.game = game
     self.object = world:newCircleCollider(x, y, 12)
-    self.object:setLinearVelocity(math.cos(theta) * 2000, math.sin(theta) * 2000)
+    self.object:setLinearVelocity(math.cos(theta) * 1000, math.sin(theta) * 1000)
     self.object:setAngle(theta)
     self.object:setBullet(true)
 

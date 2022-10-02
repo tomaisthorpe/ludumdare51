@@ -134,7 +134,7 @@ end
 function Enemy:canSeePlayer()
   -- raycast between enemy and player to check if enemy can see the player
   local colliders = self.world:queryLine(self:getX(), self:getY(), self.game.player:getX(), self.game.player:getY(),
-    { 'Solid' })
+    { 'Solid', 'Door', 'Hinge' })
 
   return #colliders == 0
 end

@@ -32,7 +32,10 @@ function Game:enter()
 
   self.player = Player(self, self.world, self.house.startingPosition.x, self.house.startingPosition.y)
   self.enemies = {}
-  -- table.insert(self.enemies, Enemy(self, self.world, 32, 32))
+
+  for _, enemy in ipairs(self.house.enemyLocations) do
+    table.insert(self.enemies, Enemy(self, self.world, enemy.x, enemy.y))
+  end
 
   self.entities = {}
 

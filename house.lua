@@ -6,11 +6,12 @@ local Wall = require("wall")
 local Door = require("door")
 
 local House = Class {
-    init = function(self, world, rooms, walls, doors, grid, startingRoom)
+    init = function(self, world, rooms, walls, doors, grid, startingRoom, enemyLocations)
         self.world = world
         self.rooms = rooms
         self.grid = grid
         self.startingRoom = startingRoom
+        self.enemyLocations = enemyLocations
 
         self.startingPosition = {
             x = startingRoom.rect[1].x + startingRoom.w / 2,
