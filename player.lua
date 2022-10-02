@@ -11,7 +11,7 @@ local Player = Class {
     self.object:setCollisionClass('Player')
     self.object:setObject(self)
     self.object:setFixedRotation(true)
-    self.object:setLinearDamping(5)
+    self.object:setLinearDamping(10)
   end,
   speed = 4000,
   fireRate = 0.15,

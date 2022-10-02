@@ -82,7 +82,7 @@ function Enemy:update(dt)
       return
     end
 
-    if self.pathDOB >= love.timer.getTime() - config.enemyPathInterval then
+    if self.pathDOB + config.enemyPathInterval <= love.timer.getTime() then
       self.path = self.game.house:path(
         { x = self:getX(), y = self:getY() },
         { x = self.game.player:getX(), y = self.game.player:getY() }
