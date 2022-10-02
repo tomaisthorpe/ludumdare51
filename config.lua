@@ -1,10 +1,16 @@
 local config = {
   physicsDebug = false,
-  fullscreen = true,
+  fullscreen = false,
 
   borderColor = { 9 / 255, 18 / 255, 26 / 255 },
   windowWidth = 800,
   windowHeight = 600,
+
+  levelGen = {
+    rooms = { 2, 8 },
+    enemies = { 2, 10 },
+    maxLevel = 5,
+  },
 
   uiSizing = {
     margin = 16,

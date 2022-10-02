@@ -16,11 +16,20 @@ BR = 3
 TR = 4
 minRoomSize = 6
 
-maxRooms = 5
+minRooms = 2
 
 local HouseGenerator = Class {
-    init = function(self, world)
+    init = function(self, world, level)
         self.world = world
+
+
+        if level > config.levelGen.maxLevel then
+            level = config.levelGen.maxLevel
+        end
+
+
+        local progress = (level - 1) / (config.levelGen.maxLevel - 1)
+        self.maxRooms = (config.levelGen.rooms[2] - config.levelGen.rooms[1]) * progress + config.levelGen.rooms[1]
     end,
     grid = {
         id = 0,
@@ -98,8 +107,11 @@ function HouseGenerator:generate()
 end
 
 function HouseGenerator:getEnemyLocations(rooms)
+    local secondRoom = rooms[1]
+    if #rooms > 1 then
+        secondRoom = rooms[2]
+    end
     -- First room is always a starting room
-    local secondRoom = rooms[2]
     return {
         {
             x = secondRoom.rect[1].x + secondRoom.w / 2,
@@ -110,10 +122,13 @@ function HouseGenerator:getEnemyLocations(rooms)
 end
 
 function HouseGenerator:isLayoutValid(rooms, doors, startingRoom)
+    if #rooms < minRooms then
+        return false
+    end
+
     local currentIDs = {
         [startingRoom.id] = true,
     }
-
 
     local count = 0
     while count < #doors do
@@ -163,7 +178,7 @@ function HouseGenerator:selectRooms(rooms, boundaries)
     local selectedRoomIDs = { [startingRoom.id] = true }
     local noLoopy = 0
 
-    while roomCount < maxRooms and noLoopy < 100 do
+    while roomCount < self.maxRooms and noLoopy < 100 do
         -- Find all boundaries that include at least one of the selected room IDs
         local selectedBoundaries = {}
 

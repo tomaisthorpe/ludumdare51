@@ -1,7 +1,8 @@
 local Gamestate = require("hump.gamestate")
 
 local config = require("config")
-local Game = require("game")
+local GameManager = require("game-manager")
+
 
 function love.load()
   Gamestate.registerEvents()
@@ -9,7 +10,7 @@ function love.load()
   love.graphics.setDefaultFilter("nearest", "nearest")
   love.window.setFullscreen(config.fullscreen)
 
-  Gamestate.switch(Game, 1, 3)
+  Gamestate.switch(GameManager)
 
   love.window.setTitle("Ludum Dare 51")
 end

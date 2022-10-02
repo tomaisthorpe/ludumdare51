@@ -7,11 +7,14 @@ local inspect = require("inspect")
 local Enemy = require("enemy")
 local Gamestate = require("hump.gamestate")
 local House = require("house")
+local Class = require("hump.class")
 
-local Game = {
-  translate = { 0, 0 },
-  scaling = 1,
-  lives = 3,
+local Game = Class {
+  init = function(self)
+    self.translate = { 0, 0 }
+    self.scaling = 1
+    self.lives = 3
+  end,
 }
 
 function Game:init()
@@ -35,7 +38,7 @@ function Game:enter(prev, level, lives)
   self.world:addCollisionClass('Enemy', { ignores = { 'Hinge' } })
   self.world:addCollisionClass('Bullet', { ignores = { 'Bullet', 'Solid', 'Enemy', 'Player' } })
 
-  local houseGen = HouseGenerator(self.world)
+  local houseGen = HouseGenerator(self.world, level)
   self.houseConfig = houseGen:generate()
   houseGen:draw()
 
@@ -62,11 +65,12 @@ function Game:setup(startStarted)
   end
   self.paused = false
   self.timeLeft = 10
+
+  self.hasWon = false
 end
 
-function Game:reset()
-  -- Destroy everything
-
+function Game:destroy()
+  print("wut")
   self.player:destroy()
   self.house:destroy()
 
@@ -77,32 +81,51 @@ function Game:reset()
   for _, entity in ipairs(self.entities) do
     entity:destroy()
   end
+end
+
+function Game:reset()
+  -- Destroy everything
+  self:destroy()
 
   self:setup(true)
 end
 
-function Game:update(dt)
-  self.camera:update(dt)
-  self.camera:follow(self.player:getX(), self.player:getY())
+function Game:leave()
+  self:destroy()
+end
 
-  if not self.started then
-    if love.keyboard.isDown("space") then
+function Game:keyreleased(key)
+  if key == "space" then
+    if self.hasWon then
+      Gamestate.pop(self.lives)
+      return
+    end
+
+    if not self.started then
       self.started = true
     end
 
-    return
-  end
-
-  if self.paused then
-
-    if love.keyboard.isDown("space") then
+    if self.paused then
       if self.lives > 0 then
         self:reset()
       else
         love.event.quit()
       end
     end
+  end
 
+end
+
+function Game:update(dt)
+  self.camera:update(dt)
+  self.camera:follow(self.player:getX(), self.player:getY())
+
+  if self.hasWon or not self.started or self.paused then
+    return
+  end
+
+  if #self.enemies == 0 then
+    self.hasWon = true
     return
   end
 
@@ -271,14 +294,36 @@ function Game:drawUI()
 
     love.graphics.setFont(self.largeFont)
     love.graphics.setColor(0.5, 0.5, 0.5)
-    love.graphics.printf("Press space to try " .. action, 0, config.windowHeight - 32 - config.uiSizing.margin * 2 + 1,
+    love.graphics.printf("Press space to " .. action, 0, config.windowHeight - 32 - config.uiSizing.margin * 2 + 1,
       config.windowWidth - config.uiSizing.margin * 2, "center")
 
     love.graphics.setColor(config.uiPalette.mutedText)
-    love.graphics.printf("Press space to try " .. action, 0, config.windowHeight - 32 - config.uiSizing.margin * 2,
+    love.graphics.printf("Press space to " .. action, 0, config.windowHeight - 32 - config.uiSizing.margin * 2,
       config.windowWidth - config.uiSizing.margin * 2, "center")
   end
 
+  if self.hasWon then
+    local text = "House cleared!"
+
+    love.graphics.setFont(self.xlFont)
+    love.graphics.setColor(0.5, 0.5, 0.5)
+    love.graphics.printf(text, 0, config.windowHeight - 52 - config.uiSizing.margin * 3 + 1,
+      config.windowWidth - config.uiSizing.margin * 2, "center")
+
+    love.graphics.setColor(config.uiPalette.gameOver)
+    love.graphics.printf(text, 0, config.windowHeight - 52 - config.uiSizing.margin * 3,
+      config.windowWidth - config.uiSizing.margin * 2, "center")
+
+
+    love.graphics.setFont(self.largeFont)
+    love.graphics.setColor(0.5, 0.5, 0.5)
+    love.graphics.printf("Press space to continue", 0, config.windowHeight - 32 - config.uiSizing.margin * 2 + 1,
+      config.windowWidth - config.uiSizing.margin * 2, "center")
+
+    love.graphics.setColor(config.uiPalette.mutedText)
+    love.graphics.printf("Press space to continue", 0, config.windowHeight - 32 - config.uiSizing.margin * 2,
+      config.windowWidth - config.uiSizing.margin * 2, "center")
+  end
 
   love.graphics.pop()
 end

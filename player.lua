@@ -14,22 +14,23 @@ local Player = Class {
   end,
   speed = 4000,
   fireRate = 0.2,
-  lastShot = 0,
   health = 100,
+  lastShot = 0,
   dead = false,
+  destroyed = false,
 }
 
 function Player:destroy()
-  if not self.dead then
+  if not self.destroyed then
     self.object:destroy()
-    self.dead = true
-
+    self.destroyed = true
   end
-
 end
 
 function Player:damage(dmg)
   self.health = self.health - 0.3 * dmg
+
+  print(self.health)
 
   if self.health <= 0 then
     self.dead = true
