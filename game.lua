@@ -5,19 +5,23 @@ local Player = require("player")
 local Camera = require("Camera")
 local inspect = require("inspect")
 local Enemy = require("enemy")
+local Gamestate = require("hump.gamestate")
+local House = require("house")
 
 local Game = {
   translate = { 0, 0 },
   scaling = 1,
+  lives = 3,
 }
 
 function Game:init()
   -- Window setup
   Game:calculateScaling()
-
 end
 
-function Game:enter()
+function Game:enter(prev, lives, seed)
+  self.lives = lives
+  print('enter with seed', seed)
   self.world = wf.newWorld(0, 0, true)
   self.world:addCollisionClass('Hinge')
   self.world:addCollisionClass('Door', { ignores = { 'Hinge' } })
@@ -26,9 +30,23 @@ function Game:enter()
   self.world:addCollisionClass('Enemy', { ignores = { 'Hinge' } })
   self.world:addCollisionClass('Bullet', { ignores = { 'Bullet', 'Solid', 'Enemy', 'Player' } })
 
+  if seed == nil then
+    seed = love.timer.getTime()
+  end
+  self.seed = seed
+
   local houseGen = HouseGenerator(self.world)
-  self.house = houseGen:generate()
+  self.houseConfig = houseGen:generate(seed)
   houseGen:draw()
+
+  self.camera = Camera(0, 0, 800, 600)
+  self.camera:setFollowStyle('TOPDOWN_TIGHT')
+
+  self:setup()
+end
+
+function Game:setup()
+  self.house = House(self.world, self.houseConfig)
 
   self.player = Player(self, self.world, self.house.startingPosition.x, self.house.startingPosition.y)
   self.enemies = {}
@@ -38,12 +56,23 @@ function Game:enter()
   end
 
   self.entities = {}
+end
 
-  self.camera = Camera(0, 0, 800, 600)
-  self.camera:setFollowStyle('TOPDOWN_TIGHT')
+function Game:reset()
+  -- Destroy everything
 
-  -- self.path = self.house:path(
-  --   { x = 2, y = 2 }, { x = 30, y = 15 })
+  self.player:destroy()
+  self.house:destroy()
+
+  for _, enemy in ipairs(self.enemies) do
+    enemy:destroy()
+  end
+
+  for _, entity in ipairs(self.entities) do
+    entity:destroy()
+  end
+
+  self:setup()
 end
 
 function Game:update(dt)
@@ -181,7 +210,13 @@ function Game:keypressed(key)
 end
 
 function Game:gameOver()
-  love.event.quit()
+  self.lives = self.lives - 1
+  if self.lives <= 0 then
+    love.event.quit()
+    return
+  end
+
+  self:reset()
 end
 
 return Game

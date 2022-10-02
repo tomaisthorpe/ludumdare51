@@ -6,26 +6,36 @@ local Wall = require("wall")
 local Door = require("door")
 
 local House = Class {
-    init = function(self, world, rooms, walls, doors, grid, startingRoom, enemyLocations)
+    init = function(self, world, config)
         self.world = world
-        self.rooms = rooms
-        self.grid = grid
-        self.startingRoom = startingRoom
-        self.enemyLocations = enemyLocations
+        self.rooms = config.rooms
+        self.grid = config.grid
+        self.startingRoom = config.startingRoom
+        self.enemyLocations = config.enemyLocations
 
         self.startingPosition = {
-            x = startingRoom.rect[1].x + startingRoom.w / 2,
-            y = startingRoom.rect[1].y + startingRoom.h / 2,
+            x = config.startingRoom.rect[1].x + config.startingRoom.w / 2,
+            y = config.startingRoom.rect[1].y + config.startingRoom.h / 2,
         }
 
-        self:setupWalls(walls)
-        self:setupDoors(doors)
+        self:setupWalls(config.walls)
+        self:setupDoors(config.doors)
         self:generateNodes()
     end,
     nodes = {},
     walls = {},
     doors = {},
 }
+
+function House:destroy()
+    for _, wall in ipairs(self.walls) do
+        wall:destroy()
+    end
+
+    for _, door in ipairs(self.doors) do
+        door:destroy()
+    end
+end
 
 function House:generateNodes()
     for x = 1, self.grid.w do

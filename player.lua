@@ -16,7 +16,17 @@ local Player = Class {
   fireRate = 0.2,
   lastShot = 0,
   health = 100,
+  dead = false,
 }
+
+function Player:destroy()
+  if not self.dead then
+    self.object:destroy()
+    self.dead = true
+
+  end
+
+end
 
 function Player:damage(dmg)
   self.health = self.health - 0.3 * dmg
@@ -37,6 +47,10 @@ function Player:getY()
 end
 
 function Player:update(dt)
+  if self.dead then
+    return
+  end
+
   local vx = self.speed * self.object:getMass();
   local vy = self.speed * self.object:getMass();
 
@@ -80,6 +94,10 @@ function Player:shoot()
 end
 
 function Player:draw()
+  if self.dead then
+    return
+  end
+
   love.graphics.push()
 
   -- Translate as we need to draw at 0,0 for rotation

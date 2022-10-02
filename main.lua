@@ -9,8 +9,8 @@ function love.load()
   love.graphics.setDefaultFilter("nearest", "nearest")
   love.window.setFullscreen(config.fullscreen)
 
-  Gamestate.switch(Game)
-  
+  Gamestate.switch(Game, 3)
+
   love.window.setTitle("Ludum Dare 51")
 end
 

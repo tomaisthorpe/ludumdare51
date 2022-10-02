@@ -44,7 +44,6 @@ function HouseGenerator:generate()
 
     while true do
         self.grid:reset()
-        print("grid1", #self.grid.data)
         self.roomCount = 1
 
         -- Create the root node
@@ -83,9 +82,16 @@ function HouseGenerator:generate()
             local enemyLocations = self:getEnemyLocations(selectedRooms)
 
             if self:isLayoutValid(selectedRooms, doors, startingRoom) then
-                local house = House(self.world, selectedRooms, walls, doors, self.grid, startingRoom, enemyLocations)
+                local config = {
+                    rooms = selectedRooms,
+                    walls = walls,
+                    doors = doors,
+                    grid = self.grid,
+                    startingRoom = startingRoom,
+                    enemyLocations = enemyLocations,
+                }
 
-                return house
+                return config
             end
         end
 
@@ -215,7 +221,7 @@ function HouseGenerator:getBoundaries(rooms)
     local gs = config.gridScale
 
     for _, room in ipairs(rooms) do
-        print("Right edge for ", room.id, room.gx + room.gw, room.gx, room.gw)
+        -- print("Right edge for ", room.id, room.gx + room.gw, room.gx, room.gw)
         -- Right edge
         -- Get the x where the wall should start
         local x = room.gx + room.gw
@@ -263,7 +269,7 @@ function HouseGenerator:getBoundaries(rooms)
         end
 
         -- -- Bottom edge
-        print("Bottom edge for ", room.id)
+        -- print("Bottom edge for ", room.id)
         -- Get the y where the wall should start
         local x = room.gx
         local y = room.gy + room.gh
@@ -354,7 +360,7 @@ function HouseGenerator:getBoundaries(rooms)
             end
         end
 
-        print("Left edge for ", room.id, room.gx + room.gw, room.gx, room.gw)
+        -- print("Left edge for ", room.id, room.gx + room.gw, room.gx, room.gw)
         -- Left edge if left is 0 only
         local x = room.gx
         local y = room.gy
@@ -641,7 +647,7 @@ function HouseGenerator:drawNode(node)
 end
 
 function HouseGenerator:draw()
-    print("drawing")
+    -- print("drawing")
     local line = ""
     local x, y
     for y = 0, self.grid.h - 1 do

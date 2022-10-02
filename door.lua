@@ -8,9 +8,9 @@ local Door = Class {
         self.y = y
         self.vertical = vertical
 
-        local hinge = world:newCircleCollider(x, y, 2)
-        hinge:setCollisionClass('Hinge')
-        hinge:setType('static')
+        self.hinge = world:newCircleCollider(x, y, 2)
+        self.hinge:setCollisionClass('Hinge')
+        self.hinge:setType('static')
 
 
         self.w = 48
@@ -29,7 +29,7 @@ local Door = Class {
         self.obj:setMass(1)
         self.obj:setLinearDamping(4)
 
-        self.joint = world:addJoint('RevoluteJoint', hinge, self.obj, x + 1, y + 1, true)
+        self.joint = world:addJoint('RevoluteJoint', self.hinge, self.obj, x + 1, y + 1, true)
 
         self.joint:setMaxMotorTorque(5000)
         self.joint:setMotorEnabled(true)
@@ -37,7 +37,17 @@ local Door = Class {
         self.joint:setLimits(-math.pi * 0.7, math.pi * 0.7)
         self.joint:setLimitsEnabled(true)
     end,
+    dead = false,
 }
+
+function Door:destroy()
+    if not self.dead then
+        self.joint:destroy()
+        self.obj:destroy()
+        self.hinge:destroy()
+        self.dead = true
+    end
+end
 
 function Door:getX()
     return self.obj:getX()
@@ -48,6 +58,10 @@ function Door:getY()
 end
 
 function Door:update(dt)
+    if self.dead then
+        return
+    end
+
     -- Target is 0 so don't need to compare
     local diff = self.obj:getAngle()
 
@@ -55,6 +69,10 @@ function Door:update(dt)
 end
 
 function Door:draw()
+    if self.dead then
+        return
+    end
+
     love.graphics.push()
 
     love.graphics.setColor(config.doorColor)
