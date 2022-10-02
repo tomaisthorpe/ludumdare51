@@ -70,7 +70,6 @@ function Game:setup(startStarted)
 end
 
 function Game:destroy()
-  print("wut")
   self.player:destroy()
   self.house:destroy()
 

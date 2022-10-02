@@ -30,6 +30,8 @@ local HouseGenerator = Class {
 
         local progress = (level - 1) / (config.levelGen.maxLevel - 1)
         self.maxRooms = (config.levelGen.rooms[2] - config.levelGen.rooms[1]) * progress + config.levelGen.rooms[1]
+        self.enemyCount = (config.levelGen.enemies[2] - config.levelGen.enemies[1]) * progress +
+            config.levelGen.enemies[1]
     end,
     grid = {
         id = 0,
@@ -107,18 +109,40 @@ function HouseGenerator:generate()
 end
 
 function HouseGenerator:getEnemyLocations(rooms)
-    local secondRoom = rooms[1]
-    if #rooms > 1 then
-        secondRoom = rooms[2]
+    -- Just to ensure doesn't crash
+    if #rooms == 1 and rooms[1].startingRoom then
+        return {}
     end
-    -- First room is always a starting room
-    return {
-        {
-            x = secondRoom.rect[1].x + secondRoom.w / 2,
-            y = secondRoom.rect[1].y + secondRoom.h / 2,
-        }
-    }
 
+    local allowedRooms = {}
+    for _, room in ipairs(rooms) do
+        if not room.startingRoom then
+            table.insert(allowedRooms, room)
+        end
+    end
+
+    local locations = {}
+
+    for e = 1, self.enemyCount do
+        -- Choose a random room
+        local room = allowedRooms[love.math.random(1, #allowedRooms)]
+
+        print("why", inspect(room))
+
+        local minX = room.rect[1].x + 16
+        local maxX = room.rect[1].x + room.w - 16
+
+        local minY = room.rect[1].y + 16
+        local maxY = room.rect[1].y + room.h - 16
+
+        table.insert(locations, {
+            x = love.math.random(minX, maxX),
+            y = love.math.random(minY, maxY),
+        })
+
+    end
+
+    return locations
 end
 
 function HouseGenerator:isLayoutValid(rooms, doors, startingRoom)
