@@ -14,7 +14,7 @@ local Player = Class {
     self.object:setLinearDamping(5)
   end,
   speed = 4000,
-  fireRate = 0.2,
+  fireRate = 0.15,
   health = 100,
   lastShot = 0,
   dead = false,
@@ -29,7 +29,7 @@ function Player:destroy()
 end
 
 function Player:damage(dmg)
-  self.health = self.health - 0.3 * dmg
+  self.health = self.health - 0.15 * dmg
 
   if not self.dead and self.health <= 0 then
     self.dead = true

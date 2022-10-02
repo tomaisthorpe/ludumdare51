@@ -42,7 +42,7 @@ function Enemy:destroy()
 end
 
 function Enemy:damage(dmg)
-  self.health = self.health - 0.3 * dmg
+  self.health = self.health - 0.4 * dmg
 
   if self.health <= 0 then
     self:destroy()
@@ -106,9 +106,13 @@ function Enemy:update(dt)
   -- Check if we should shoot the player
   -- Player needs to be under a set distance and enemy can actually see them
   if self:distToPlayer() < config.enemyShootDistance and self:canSeePlayer() then
-    local player = self.game.player
-    local theta = math.atan2(player:getY() - self:getY(), player:getX() - self:getY())
-    self.object:setAngle(theta - math.pi)
+    local px = self.game.player:getX()
+    local py = self.game.player:getY()
+
+    local dx = px - self:getX()
+    local dy = py - self:getY()
+    local theta = math.atan2(dy, dx)
+    self.object:setAngle(theta)
     self:shoot()
   end
 end
@@ -127,6 +131,7 @@ function Enemy:shoot()
   local dx = px - self:getX()
   local dy = py - self:getY()
   local theta = math.atan2(dy, dx)
+  self.object:setAngle(theta)
 
   local bullet = Bullet(self.game, self.world, self:getX(), self:getY(), theta, 'Player')
   self.game:addEntity(bullet)

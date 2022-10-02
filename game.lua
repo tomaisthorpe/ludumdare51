@@ -98,7 +98,11 @@ end
 function Game:keyreleased(key)
   if key == "space" then
     if self.hasWon then
-      Gamestate.pop(self.lives)
+      if self.level == config.levelGen.maxLevel then
+        love.event.quit()
+      else
+        Gamestate.pop(self.lives)
+      end
       return
     end
 
@@ -305,8 +309,16 @@ function Game:drawUI()
 
   if self.hasWon then
     local text = "House cleared!"
-
+    local action = "continue"
     love.graphics.setFont(self.xlFont)
+
+    if self.level == config.levelGen.maxLevel then
+      action = "quit"
+      love.graphics.setFont(self.largeFont)
+      text = "Game complete! Thanks for playing!"
+    end
+
+
     love.graphics.setColor(0.5, 0.5, 0.5)
     love.graphics.printf(text, 0, config.windowHeight - 52 - config.uiSizing.margin * 3 + 1,
       config.windowWidth - config.uiSizing.margin * 2, "center")
@@ -318,11 +330,11 @@ function Game:drawUI()
 
     love.graphics.setFont(self.largeFont)
     love.graphics.setColor(0.5, 0.5, 0.5)
-    love.graphics.printf("Press space to continue", 0, config.windowHeight - 32 - config.uiSizing.margin * 2 + 1,
+    love.graphics.printf("Press space to " .. action, 0, config.windowHeight - 32 - config.uiSizing.margin * 2 + 1,
       config.windowWidth - config.uiSizing.margin * 2, "center")
 
     love.graphics.setColor(config.uiPalette.mutedText)
-    love.graphics.printf("Press space to continue", 0, config.windowHeight - 32 - config.uiSizing.margin * 2,
+    love.graphics.printf("Press space to " .. action, 0, config.windowHeight - 32 - config.uiSizing.margin * 2,
       config.windowWidth - config.uiSizing.margin * 2, "center")
   end
 

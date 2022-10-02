@@ -8,7 +8,7 @@ local config = require("config")
 local inspect = require("inspect")
 local House = require("house")
 
-MAX_RECURSION = 4
+MAX_RECURSION = 5
 
 TL = 1
 BL = 2

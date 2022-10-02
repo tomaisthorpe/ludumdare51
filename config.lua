@@ -1,6 +1,6 @@
 local config = {
   physicsDebug = false,
-  fullscreen = true,
+  fullscreen = false,
 
   startLives = 3,
   borderColor = { 9 / 255, 18 / 255, 26 / 255 },
@@ -9,7 +9,7 @@ local config = {
 
   levelGen = {
     rooms = { 2, 8 },
-    enemies = { 2, 10 },
+    enemies = { 2, 7 },
     maxLevel = 5,
   },
 
@@ -48,9 +48,9 @@ local config = {
   doorColor = { 0.407, 0.266, 0.2 },
 
   generator = {
-    maxRoomWidth = 40,
-    maxRoomHeight = 40,
-    maxRoomArea = 30 * 20,
+    maxRoomWidth = 30,
+    maxRoomHeight = 30,
+    maxRoomArea = 20 * 20,
   }
 }
 

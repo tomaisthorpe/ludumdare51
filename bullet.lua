@@ -25,10 +25,11 @@ function Bullet:getY()
 end
 
 function Bullet:update(dt)
-  if self.object:enter('Solid') then
+  if self.object:enter('Solid') or self.object:enter('Door') or self.object:enter('Hinge') then
     self:destroy()
     return
   end
+
 
   self.lifetime = self.lifetime - dt
   if self.lifetime <= 0 then
